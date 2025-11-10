@@ -4,7 +4,7 @@ from .views import (CategoryViewSet,
     CertificatesViewSet, CompanyViewSet, ProductByCategoryViewSet, ProductView,
     ProductImageView, CategoriesDetailView, PartnersView, NewsDetailView,
     CityViewSet, ServiceLocationViewSet, ServiceCenterDescriptionViewSet,
-    ProductViewSet)
+    ProductViewSet, BannerView)
 
 router = DefaultRouter()
 # router.register(r'languages', LanguageViewSet)
@@ -34,6 +34,7 @@ urlpatterns = [
     path('cities/', CityViewSet.as_view(), name='cities'),
     path('service-locations/', ServiceLocationViewSet.as_view(), name='service-locations'),
     path('service-center-descriptions/', ServiceCenterDescriptionViewSet.as_view(), name='service-center-descriptions'),
+    path('banner/', BannerView.as_view(),name='banner')
     # path('product-images/', ProductImageViewSet.as_view({'get': 'list'}), name='product-images-list'),
     # path('product-images/<int:pk>/', ProductImageViewSet.as_view({'get': 'retrieve'}), name='product-image-detail'),
     # product-translations

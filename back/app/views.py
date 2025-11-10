@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from .models import Certificates, Category, Product, ProductImage, Company, Partners, ServiceLocation, City, ServiceCenterDescription
+from .models import Certificates, Category, Product, ProductImage, Company, Partners, ServiceLocation, City, ServiceCenterDescription, Banner
 from .serilializers import (
     CitySerializer,
     ServiceLocationSerializer,
@@ -10,7 +10,8 @@ from .serilializers import (
     ProductImageSerializer,
     CertificatesSerializer,
     CompanySerializer,
-    PartnersSerializer
+    PartnersSerializer,
+    BannerSerializer
 )
 from rest_framework.decorators import APIView
 from rest_framework.response import Response
@@ -18,6 +19,18 @@ from rest_framework.response import Response
 # Create your views here.
 
 # class CategoryTranslationSerializer(APIView)
+class BannerView(APIView):
+    def get(self, request, *args, **kwargs):
+        lang = request.GET.get('lang', 'en')
+        banners = Banner.objects.all().translated(lang)  # 🔥 parler query for language
+        data = []
+        for b in banners:
+            data.append({
+                "name": b.safe_translation_getter('name', any_language=True),
+                "image": request.build_absolute_uri(b.safe_translation_getter('image').url),
+                "alt": b.safe_translation_getter('alt', any_language=True),
+            })
+        return Response(data)
 
 class CityViewSet(APIView):
     def get(self, request):

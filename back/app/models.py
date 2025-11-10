@@ -34,15 +34,49 @@ class Category(BaseModel, TranslatableModel):
     image = models.ImageField(upload_to='categories/', blank=True, null=True)
 
     def __str__(self):
-        return self.name
+        return self.safe_translation_getter('name', any_language=True) or "Category"
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+        base_lang = 'uz'
+        target_langs = ['en', 'ru']
 
-        for translation in self.translations.all():
-            if translation.slug is None or translation.slug == '':
-                translation.slug = f"category-{translation.name}"
-            translation.save()
+        try:
+            base_translation = self.translations.get(language_code=base_lang)
+        except Exception as e:
+            print(f"⚠️ No base translation found for {base_lang}: {e}")
+            return
+
+        # 🔹 Translate only to other languages
+        for lang in target_langs:
+            try:
+                if self.translations.filter(language_code=lang).exists():
+                    continue
+
+                translated_name = translator.translate(
+                    base_translation.name,
+                    src=base_lang,
+                    dest=lang
+                ).text
+
+                self.create_translation(
+                    language_code=lang,
+                    name=translated_name,
+                    slug=slugify(translated_name, allow_unicode=True),
+                )
+                print(f"✅ Translated {lang}: {translated_name}")
+            except Exception as e:
+                print(f"❌ Translation failed for {lang}: {e}")
+
+        # 🔹 Only create slug for Uzbek manually if it doesn't exist
+        try:
+            uz_translation = self.translations.get(language_code=base_lang)
+            if not uz_translation.slug:
+                uz_translation.slug = slugify(uz_translation.name, allow_unicode=True)
+                uz_translation.save()
+        except Exception:
+            pass
+
 
 
 class Product(TranslatableModel, BaseModel):
@@ -84,7 +118,7 @@ class Product(TranslatableModel, BaseModel):
                     language_code=lang,
                     name=translated_name,
                     description=translated_desc,
-                    slug=slugify(translated_name),
+                    slug=slugify(translated_name, allow_unicode=True),
                 )
                 print(f"✅ Translated {lang}: {translated_name}")
             except Exception as e:
@@ -244,3 +278,13 @@ class ServiceLocation(models.Model):
 
     def __str__(self):
         return f"{self.city.name} center"
+
+
+class Banner(TranslatableModel):
+    translations = TranslatedFields(
+        name=models.CharField(max_length=255, blank=True, null=True),
+        image = models.ImageField(upload_to='banners/'),
+        alt = models.CharField(max_length=255, blank=True, null=True),
+    )
+    def __str__(self):
+        return self.safe_translation_getter('name', any_language=True) or "Banner"

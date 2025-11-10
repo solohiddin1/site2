@@ -1,8 +1,14 @@
 from rest_framework import serializers
-from .models import Product, Category, ProductImage, Certificates, Company, Partners
+from .models import Product, Category, ProductImage, Certificates, Company, Partners, City, ServiceLocation, ServiceCenterDescription, Banner
 from parler_rest.serializers import TranslatableModelSerializer, TranslatedFieldsField
-from .models import City, ServiceLocation, ServiceCenterDescription
 
+
+class BannerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Banner
+        fields='__all__'
+
+        
 # For translated models
 class CategorySerializer(TranslatableModelSerializer):
     translations = TranslatedFieldsField(shared_model=Category)

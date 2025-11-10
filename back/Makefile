@@ -4,6 +4,9 @@ mig:
 runserver:
 	python manage.py runserver
 
+runserver2:
+	python manage.py runserver 8001
+
 super:
 	python manage.py createsuperuser
 
