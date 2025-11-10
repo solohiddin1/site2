@@ -15,6 +15,7 @@ from .serilializers import (
 )
 from rest_framework.decorators import APIView
 from rest_framework.response import Response
+from rest_framework import generics 
 
 # Create your views here.
 
@@ -89,8 +90,26 @@ class ProductImageViewSet(viewsets.ModelViewSet):
     serializer_class = ProductImageSerializer
 
 
-class ProductByCategoryViewSet(viewsets.ReadOnlyModelViewSet):
+class ProductDetailView(generics.RetrieveAPIView):
     serializer_class = ProductSerializer
+    lookup_field = 'translations__slug'
+
+    def get_queryset(self):
+        lang = self.request.query_params.get('lang', 'uz')
+        return Product.objects.translated(lang, fallback=True)
+
+# class ProductDetailView(generics.RetrieveAPIView):
+#     serializer_class = ProductSerializer
+#     lookup_field = 'translations__slug'
+
+#     def get_queryset(self):
+#         lang = self.request.query_params.get('lang', 'uz')
+#         return Product.objects.translated(lang, fallback=True)
+
+
+class ProductByCategoryViewSet(generics.RetrieveAPIView):
+    serializer_class = ProductSerializer
+    # lookup_field = 'slug'
 
     def get_queryset(self):
         category_id = self.request.query_params.get('category')  # from ?category=1
@@ -98,6 +117,19 @@ class ProductByCategoryViewSet(viewsets.ReadOnlyModelViewSet):
             return Product.objects.filter(category_id=category_id)
         return Product.objects.none()
 
+
+class ProductListView(generics.ListAPIView):
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        queryset = Product.objects.all()
+        category_id = self.request.query_params.get('category')
+
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)
+
+        return queryset
+    
 class ProductView(APIView):
     def get(self, request, pk):
         product = Product.objects.filter(pk=pk).first()

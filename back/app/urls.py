@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (CategoryViewSet, 
     CertificatesViewSet, CompanyViewSet, ProductByCategoryViewSet, ProductView,
     ProductImageView, CategoriesDetailView, PartnersView, NewsDetailView,
-    CityViewSet, ServiceLocationViewSet, ServiceCenterDescriptionViewSet,
+    CityViewSet, ServiceLocationViewSet, ServiceCenterDescriptionViewSet, ProductViewSet, ProductDetailView, ProductListView,
     ProductViewSet, BannerView)
 
 router = DefaultRouter()
@@ -18,9 +18,14 @@ router = DefaultRouter()
 urlpatterns = [
     path('', include(router.urls)),
     path('partners/',PartnersView.as_view()),
-    path('products/all/', ProductViewSet.as_view(), name='products-all'),
-    path('products/', ProductByCategoryViewSet.as_view({'get': 'list'}), name='product-images-list'),
-    path('products/<int:pk>/', ProductView.as_view(), name='product-images'),
+    # path('products/all/', ProductViewSet.as_view(), name='products-all'),
+    # path('products/', ProductByCategoryViewSet.as_view({'get': 'list'}), name='product-images-list'),
+    # path('products/<int:pk>/', ProductView.as_view(), name='product-images'),
+
+    path('product-translations/', ProductViewSet.as_view(), name='product-images-list'),
+    path('products/<slug:slug>/', ProductDetailView.as_view(), name='product-images-list'),
+    path('products/', ProductListView.as_view(), name='product-images-list'),
+
 
     path('product-images/', ProductImageView.as_view(), name='product-detail'),
     path('certificates/', CertificatesViewSet.as_view(), name='certificates'),
@@ -32,7 +37,8 @@ urlpatterns = [
     path('categories/<int:pk>/', CategoriesDetailView.as_view(), name='categories-detail'),  
     path('news/', NewsDetailView.as_view(), name='news-detail'),
     path('cities/', CityViewSet.as_view(), name='cities'),
-    path('service-locations/', ServiceLocationViewSet.as_view(), name='service-locations'),
+    path('service/', ServiceLocationViewSet.as_view(), name='service-locations'),
+    # path('service-locations/', ServiceLocationViewSet.as_view(), name='service-locations'),
     path('service-center-descriptions/', ServiceCenterDescriptionViewSet.as_view(), name='service-center-descriptions'),
     path('banner/', BannerView.as_view(),name='banner')
     # path('product-images/', ProductImageViewSet.as_view({'get': 'list'}), name='product-images-list'),

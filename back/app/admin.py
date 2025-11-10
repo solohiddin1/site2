@@ -3,7 +3,7 @@ from .models import (Product, ProductImage, Category,
                      Certificates, Company, 
                      Partners, ServiceCenterDescription, ServiceLocation, City, Banner)
 from parler.admin import TranslatableAdmin
-
+from django.utils.html import format_html
 
 @admin.register(Banner)
 class BannerAdmin(TranslatableAdmin):
@@ -12,9 +12,8 @@ class BannerAdmin(TranslatableAdmin):
 
     def image_preview(self, obj):
         if obj.image:
-            return f'<img src="{obj.image.url}" width="100"/>'
+            return format_html('<img src="{}" width="200" />', obj.image.url)
         return "-"
-    image_preview.allow_tags = True
     image_preview.short_description = 'Image Preview'
 
 # Register your models here.
