@@ -34,13 +34,13 @@ urlpatterns = [
     # path('languages/', LanguageViewSet.as_view(), name='languages'),
     path('categories/', CategoryViewSet.as_view(), name='categories'),  
     path('companies/', CompanyViewSet.as_view(), name='companies'),
-    path('categories/<int:pk>/', CategoriesDetailView.as_view(), name='categories-detail'),  
+    path('categories/<slug:slug>/', CategoriesDetailView.as_view(), name='categories-detail'),  
     path('news/', NewsDetailView.as_view(), name='news-detail'),
     path('cities/', CityViewSet.as_view(), name='cities'),
     path('service/', ServiceLocationViewSet.as_view(), name='service-locations'),
     # path('service-locations/', ServiceLocationViewSet.as_view(), name='service-locations'),
     path('service-center-descriptions/', ServiceCenterDescriptionViewSet.as_view(), name='service-center-descriptions'),
-    path('banner/', BannerView.as_view(),name='banner')
+    path('banner/', BannerView.as_view(),name='banners')
     # path('product-images/', ProductImageViewSet.as_view({'get': 'list'}), name='product-images-list'),
     # path('product-images/<int:pk>/', ProductImageViewSet.as_view({'get': 'retrieve'}), name='product-image-detail'),
     # product-translations

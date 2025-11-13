@@ -11,3 +11,12 @@ python-dotenv==1.2.1
 sqlparse==0.5.3
 typing-inspection==0.4.2
 typing_extensions==4.15.0
+
+# Added dependencies used by the project
+django-parler>=3.1.0
+parler-rest>=0.1.0
+googletrans==4.0.0-rc1
+django-cors-headers>=4.0.0
+drf-yasg>=1.22.0
+jazzmin>=2.0.0
+django-extensions>=3.2.0

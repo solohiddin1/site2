@@ -33,6 +33,7 @@ ALLOWED_HOSTS = settings.ALLOWED_HOSTS
 # Application definition
 
 INSTALLED_APPS = [
+    'django_extensions',
     'parler',
     'jazzmin',
     'django.contrib.admin',

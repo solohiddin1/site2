@@ -13,7 +13,7 @@ from .serilializers import (
     PartnersSerializer,
     BannerSerializer
 )
-from rest_framework.decorators import APIView
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import generics 
 
@@ -23,12 +23,21 @@ from rest_framework import generics
 class BannerView(APIView):
     def get(self, request, *args, **kwargs):
         lang = request.GET.get('lang', 'en')
-        banners = Banner.objects.all().translated(lang)  # 🔥 parler query for language
+        banners = Banner.objects.all().translated(lang)  # parler query for language
         data = []
         for b in banners:
+            # Guard against missing image/field
+            image_field = b.safe_translation_getter('image', any_language=True)
+            image_url = None
+            try:
+                if image_field and getattr(image_field, 'url', None):
+                    image_url = request.build_absolute_uri(image_field.url)
+            except Exception:
+                image_url = None
+
             data.append({
                 "name": b.safe_translation_getter('name', any_language=True),
-                "image": request.build_absolute_uri(b.safe_translation_getter('image').url),
+                "image": image_url,
                 "alt": b.safe_translation_getter('alt', any_language=True),
             })
         return Response(data)
@@ -93,10 +102,12 @@ class ProductImageViewSet(viewsets.ModelViewSet):
 class ProductDetailView(generics.RetrieveAPIView):
     serializer_class = ProductSerializer
     lookup_field = 'translations__slug'
+    lookup_url_kwarg = 'slug'
 
     def get_queryset(self):
         lang = self.request.query_params.get('lang', 'uz')
-        return Product.objects.translated(lang, fallback=True)
+        return Product.objects.translated(lang)
+        # return Product.objects.translated(lang, fallback=True)
 
 # class ProductDetailView(generics.RetrieveAPIView):
 #     serializer_class = ProductSerializer
@@ -112,9 +123,20 @@ class ProductByCategoryViewSet(generics.RetrieveAPIView):
     # lookup_field = 'slug'
 
     def get_queryset(self):
+        # Support both category id and category slug filtering.
         category_id = self.request.query_params.get('category')  # from ?category=1
+        category_slug = self.request.query_params.get('category_slug')
+        lang = self.request.query_params.get('lang', 'uz')
+
+        if category_slug:
+            cat = Category.objects.translated(lang, fallback=True).filter(translations__slug=category_slug).first()
+            if cat:
+                return Product.objects.filter(category_id=cat.id)
+            return Product.objects.none()
+
         if category_id is not None:
             return Product.objects.filter(category_id=category_id)
+
         return Product.objects.none()
 
 
@@ -124,8 +146,16 @@ class ProductListView(generics.ListAPIView):
     def get_queryset(self):
         queryset = Product.objects.all()
         category_id = self.request.query_params.get('category')
+        category_slug = self.request.query_params.get('category_slug')
+        lang = self.request.query_params.get('lang', 'uz')
 
-        if category_id:
+        if category_slug:
+            cat = Category.objects.translated(lang, fallback=True).filter(translations__slug=category_slug).first()
+            if cat:
+                queryset = queryset.filter(category_id=cat.id)
+            else:
+                queryset = queryset.none()
+        elif category_id:
             queryset = queryset.filter(category_id=category_id)
 
         return queryset
@@ -172,11 +202,15 @@ class ProductImageView(APIView):
 
 
 class CategoriesDetailView(APIView):
-    def get(self,request,pk):
-        data = Category.objects.filter(pk=pk).first()
+    def get(self, request, slug):
+        # Return category by translated slug. Use ?lang= to choose language (default 'uz').
+        lang = request.GET.get('lang', 'uz')
+        category = Category.objects.translated(lang, fallback=True).filter(translations__slug=slug).first()
+        if not category:
+            return Response({'detail': 'Not found.'}, status=404)
 
-        serializer = CategorySerializer(data)
-        return Response(serializer.data,status=200)
+        serializer = CategorySerializer(category, context={'request': request})
+        return Response(serializer.data, status=200)
 
 
 class NewsDetailView(APIView):

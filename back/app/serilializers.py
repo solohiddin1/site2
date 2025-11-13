@@ -49,11 +49,11 @@ class ServiceLocationSerializer(serializers.ModelSerializer):
         fields = ['id', 'city', 'address', 'phone', 'email', 'map_url', 'description']
 
 class CitySerializer(serializers.ModelSerializer):
-    translations = TranslatedFieldsField(shared_model=City)
+    # translations = TranslatedFieldsField(shared_model=City)
     
     class Meta:
         model = City
-        fields = ['id', 'name']
+        fields = ['id', 'name',]
 
 class ServiceCenterDescriptionSerializer(serializers.ModelSerializer):
     class Meta:
