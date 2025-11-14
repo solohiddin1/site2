@@ -29,6 +29,7 @@ class Category(BaseModel, TranslatableModel):
             null=True,
             help_text=_("URL-friendly identifier. If left blank, it will be auto-generated from the name."),
             default=None,
+            allow_unicode=True
             ),
         )
     image = models.ImageField(upload_to='categories/', blank=True, null=True)
@@ -83,46 +84,114 @@ class Product(TranslatableModel, BaseModel):
     translations = TranslatedFields(
         name=models.CharField(max_length=255),
         description=models.TextField(blank=True),
-        slug=models.SlugField(max_length=255, blank=True, null=True),
+        slug=models.SlugField(
+            max_length=255, 
+            blank=True, null=True,
+            allow_unicode=True),
     )
 
+    unique_code = models.CharField(max_length=50, default=get_unique_code,blank=True, null=True)
     sku = models.CharField(max_length=100, blank=True, null=True, unique=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     category = models.ForeignKey('Category', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.safe_translation_getter('name') or 'Unnamed Product'
-    
+
     def save(self, *args, **kwargs):
+        is_new = self.pk is None
         super().save(*args, **kwargs)
 
-        base_lang = 'uz'  # your default admin language
+        base_lang = 'uz'
         target_langs = ['en', 'ru']
 
+        # Set base language slug
+        self.set_current_language(base_lang)
+        if not self.slug:
+            self.slug = slugify(f"{self.name}-{self.unique_code}", allow_unicode=True)
+            super().save()
+
+        # Get base translation
         try:
             base_translation = self.translations.get(language_code=base_lang)
         except Exception as e:
             print(f"⚠️ No base translation found for {base_lang}: {e}")
             return
 
+        # Translate other languages
         for lang in target_langs:
+            if self.translations.filter(language_code=lang).exists():
+                continue
             try:
-                if self.translations.filter(language_code=lang).exists():
-                    continue
-
                 translated_name = translator.translate(base_translation.name, src=base_lang, dest=lang).text
                 translated_desc = translator.translate(base_translation.description, src=base_lang, dest=lang).text
+                translated_slug = slugify(f"{translated_name}-{self.unique_code}", allow_unicode=True)
 
-                # Use Parler API to create translation
                 self.create_translation(
                     language_code=lang,
                     name=translated_name,
                     description=translated_desc,
-                    slug=slugify(translated_name, allow_unicode=True),
+                    slug=translated_slug
                 )
                 print(f"✅ Translated {lang}: {translated_name}")
             except Exception as e:
                 print(f"❌ Translation failed for {lang}: {e}")
+
+
+    # def save(self, *args, **kwargs):
+    #     self.set_current_language(base_lang)
+    #     if not self.translations__slug:
+    #         self.translations__slug = slugify(f"{self.translations__name}-{self.unique_code}", allow_unicode=True)
+
+    #     super().save(*args, **kwargs)
+
+    #     base_lang = 'uz'
+    #     target_langs = ['en', 'ru']
+
+    #     self.set_current_language(base_lang)
+    #     if not self.translations.get(language_code=base_lang).slug:
+    #         self.translations.get(language_code=base_lang).slug = slugify(f"{self.name}-{self.unique_code}", allow_unicode=True)
+    #         super().save(update_fields=['slug'])
+
+    #     try:
+    #         base_translation = self.translations.get(language_code=base_lang)
+    #     except Exception as e:
+    #         print(f"⚠️ No base translation found for {base_lang}: {e}")
+    #         return
+
+    #     for lang in target_langs:
+    #         if self.translations.filter(language_code=lang).exists():
+    #             continue
+
+    #         try:
+    #             translated_name = translator.translate(base_translation.name, src=base_lang, dest=lang).text
+    #             translated_desc = translator.translate(base_translation.description, src=base_lang, dest=lang).text
+    #             translated_slug = slugify(f"{translated_name}-{self.unique_code}", allow_unicode=True)
+
+    #             # Safe translation creation
+    #             self.create_translation(
+    #                 language_code=lang,
+    #                 name=translated_name,
+    #                 description=translated_desc,
+    #                 slug=translated_slug
+    #             )
+
+    #             print(f"✅ Translated {lang}: {translated_name}")
+    #         except Exception as e:
+    #             print(f"❌ Translation failed for {lang}: {e}")
+
+
+class ProductSpecs(TranslatableModel, BaseModel):
+    translations = TranslatedFields(
+        specs = models.JSONField(_("Specifications"), encoder=None, decoder=None, blank=True, null=True)
+    )
+    # key = models.CharField(max_length=255, blank=True, null=True)
+    # value = models.CharField(max_length=255, blank=True, null=True)
+    product = models.ForeignKey(
+        Product, related_name='specs', 
+        verbose_name=_("product_specs"), 
+        on_delete=models.CASCADE
+        )
 
 
 class ProductImage(BaseModel):
@@ -131,7 +200,7 @@ class ProductImage(BaseModel):
     Store ordering so admin can control image order. Use an ImageField for uploads.
     """
     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='products/')
+    image = models.ImageField(upload_to='products/', blank=True, null=True)
     alt = models.CharField(max_length=255, blank=True)
     ordering = models.PositiveIntegerField(default=0)
 

@@ -1,20 +1,51 @@
 from django.contrib import admin
 from .models import (Product, ProductImage, Category,
                      Certificates, Company, 
-                     Partners, ServiceCenterDescription, ServiceLocation, City, Banner)
-from parler.admin import TranslatableAdmin
+                     Partners, ServiceCenterDescription, ServiceLocation, City, Banner, ProductSpecs)
+from parler.admin import TranslatableAdmin, TranslatableTabularInline
 from django.utils.html import format_html
+
+# @admin.register(ProductSpecs)
+class ProductSpecsInline(TranslatableTabularInline):
+    model = ProductSpecs
+    extra = 0
+    fields = ('specs',)
+    # fields = ('city', 'address', 'phone', 'email', 'map_url', 'description')
+    # autocomplete_fields = ['city', 'description']  # optional for big lists
+
+
+
+# class BannerAdmin(TranslatableAdmin):
+#     list_display = ('name', 'image_preview')
+#     readonly_fields = ('image_preview',)
+
+#     def image_preview(self, obj):
+#         translation = obj.get_translation()
+#         # translation = obj.safe_translation_getter('image', any_language=True)
+#         if translation.image:
+#             return format_html('<img src="{}" width="200" />', translation.image.url)
+#         return "-"
+#         # if translation:
+#         #     return format_html('<img src="{}" width="200" />', translation.url)
+#         # return "-"
+
+#     image_preview.short_description = 'Image Preview'
 
 @admin.register(Banner)
 class BannerAdmin(TranslatableAdmin):
+    # model = Banner
+    # extra = 3
     list_display = ('name', 'image_preview')
+    # fields = ('image', 'image_preview')
     readonly_fields = ('image_preview',)
 
     def image_preview(self, obj):
-        if obj.image:
-            return format_html('<img src="{}" width="200" />', obj.image.url)
+        if obj and obj.image:
+            return format_html('<img src="{}" style="max-height: 100px;"/>', obj.image.url)
         return "-"
-    image_preview.short_description = 'Image Preview'
+
+    image_preview.short_description = "Preview"  # ustun nomi
+
 
 # Register your models here.
 # admin.site.register(Services)
@@ -110,7 +141,7 @@ class ProductInline(admin.TabularInline):
 
 @admin.register(Product)
 class ProductAdmin(TranslatableAdmin):
-    inlines = [ProductInline]
+    inlines = [ProductInline, ProductSpecsInline]
     list_display = ('name', 'sku', 'price', 'category', 'id')
     search_fields = ('translations__name', 'sku')
     list_filter = ('category',)

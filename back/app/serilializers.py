@@ -1,7 +1,17 @@
 from rest_framework import serializers
-from .models import Product, Category, ProductImage, Certificates, Company, Partners, City, ServiceLocation, ServiceCenterDescription, Banner
+from .models import (Product, Category, ProductImage, Certificates, 
+                     Company, Partners, City, ServiceLocation, 
+                     ServiceCenterDescription, Banner, 
+                     ProductSpecs
+                     )
 from parler_rest.serializers import TranslatableModelSerializer, TranslatedFieldsField
 
+
+class ProductSpecsSerializer(TranslatableModelSerializer):
+    translations = TranslatedFieldsField(shared_model=ProductSpecs)
+    class Meta:
+        model = ProductSpecs
+        fields = ['id', 'translations', 'product']
 
 class BannerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,16 +26,41 @@ class CategorySerializer(TranslatableModelSerializer):
         model = Category
         fields = ['id', 'translations', 'image']
 
-class ProductSerializer(TranslatableModelSerializer):
-    translations = TranslatedFieldsField(shared_model=Product)
-    class Meta:
-        model = Product
-        fields = ['id', 'translations', 'sku', 'price', 'category']
 
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
         fields = ['id', 'product', 'image', 'alt', 'ordering']
+
+        
+class RelatedProductSerializer(TranslatableModelSerializer):
+    translations = TranslatedFieldsField(shared_model=Product)
+    images = ProductImageSerializer(many=True, read_only=True)
+    class Meta:
+        model = Product
+        fields = ['id', 'translations', 'sku', 'price', 'category', 'images']  # no related_products
+
+
+class ProductSerializer(TranslatableModelSerializer):
+    # related_products = ProductSerializer(many=True, read_only=True, source='get_related_products')
+    related_products = serializers.SerializerMethodField()
+
+    translations = TranslatedFieldsField(shared_model=Product)
+    specs = ProductSpecsSerializer(many=True, read_only=True)
+    category = CategorySerializer(read_only=True)
+    images = ProductImageSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Product
+        fields = ['id', 'translations', 'sku', 'price', 'category', 'images', 'specs', 'related_products']
+
+    def get_related_products(self, obj):
+        qs = Product.objects.filter(category=obj.category).exclude(id=obj.id)[:4]
+        return RelatedProductSerializer(qs, many=True, context=self.context).data
+        
+        # related_products = obj.get_related_products()
+        # serializer = ProductSerializer(related_products, many=True, context=self.context)
+        # return serializer.data
 
 class CertificatesSerializer(serializers.ModelSerializer):
     class Meta:

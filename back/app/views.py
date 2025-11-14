@@ -104,9 +104,25 @@ class ProductDetailView(generics.RetrieveAPIView):
     lookup_field = 'translations__slug'
     lookup_url_kwarg = 'slug'
 
+    
     def get_queryset(self):
-        lang = self.request.query_params.get('lang', 'uz')
-        return Product.objects.translated(lang)
+            lang = self.request.query_params.get("lang", "uz")
+            return (
+                Product.objects.translated(lang)
+                .prefetch_related("specs", "images")
+                .select_related("category")
+            )
+
+    def get_related_products(self):
+        product = self.get_object()
+        return Product.objects.filter(category=product.category).exclude(id=product.id)[:4]
+        
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['related_products'] = self.get_related_products()
+        return context
+
+    
         # return Product.objects.translated(lang, fallback=True)
 
 # class ProductDetailView(generics.RetrieveAPIView):
@@ -131,12 +147,12 @@ class ProductByCategoryViewSet(generics.RetrieveAPIView):
         if category_slug:
             cat = Category.objects.translated(lang, fallback=True).filter(translations__slug=category_slug).first()
             if cat:
-                return Product.objects.filter(category_id=cat.id)
+                return Product.objects.translated(lang, fallback=True).filter(category_id=cat.id)
+
             return Product.objects.none()
 
         if category_id is not None:
-            return Product.objects.filter(category_id=category_id)
-
+            return Product.objects.translated(lang, fallback=True).filter(category_id=category_id)
         return Product.objects.none()
 
 
@@ -160,12 +176,12 @@ class ProductListView(generics.ListAPIView):
 
         return queryset
     
-class ProductView(APIView):
-    def get(self, request, pk):
-        product = Product.objects.filter(pk=pk).first()
-        serializer = ProductSerializer(product)
+# class ProductView(APIView):
+#     def get(self, request, pk):
+#         product = Product.objects.filter(pk=pk).first()
+#         serializer = ProductSerializer(product)
 
-        return Response(serializer.data)
+#         return Response(serializer.data)
 
 
 class ProductImageView(APIView):
@@ -175,30 +191,6 @@ class ProductImageView(APIView):
         print(images)
         serializer = ProductImageSerializer(images, many=True, context={'request': request})
         return Response(serializer.data)
-
-
-# class ProductTranslationViewDetail(APIView):
-#     def get(self, request):
-#         product_id = self.request.query_params.get('product')
-#         language_id = self.request.query_params.get('language')
-#         product =  None
-#         # product =  ProductTranslation.objects.filter(product_id=product_id, language_id=language_id)
-#         print(product)
-#         print('request entered to product tranlation')
-#         if product.exists():
-#             print("here1")
-#             serializer = ProductTranslationSerializer(product,many=True)
-#             return Response(serializer.data)
-#         else:
-#             print("here2")
-#             default_lang = Language.objects.get(is_default=True)
-#             print(default_lang)
-#             default_product = ProductTranslation.objects.filter(product_id=product_id, language_id=default_lang.id).first()
-#             if default_product:
-#                 print("entered to default")
-#                 serializer = ProductTranslationSerializer(default_product)
-#                 return Response(serializer.data)
-#         return Response({"detail": " No product translation found"},status=200)
 
 
 class CategoriesDetailView(APIView):
