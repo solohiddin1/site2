@@ -87,7 +87,10 @@ class CategoryViewSet(APIView):
         return Response(serializer.data)
 
 
-class ProductViewSet(APIView):
+class ProductViewSet(generics.ListAPIView):
+    serializer_class = ProductSerializer
+    lookup_field = 'id'
+
     def get(self, request):
         products = Product.objects.all()
         serializer = ProductSerializer(products, many=True)
