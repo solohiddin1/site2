@@ -78,6 +78,64 @@ class Category(BaseModel, TranslatableModel):
         except Exception:
             pass
 
+class SubCategory(TranslatableModel, BaseModel):
+    translations = TranslatedFields(
+        name = models.CharField(max_length=255),
+        slug = models.SlugField(
+            max_length=255,
+            blank=True,
+            null=True,
+            help_text=_("URL-friendly identifier. If left blank, it will be auto-generated from the name."),
+            default=None,
+            allow_unicode=True
+        ),
+    )
+    category = models.ForeignKey('Category', related_name='subcategories', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='subcategories/', blank=True, null=True)
+
+    def __str__(self):
+        return self.safe_translation_getter('name', any_language=True) or "SubCategory"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        base_lang = 'uz'
+        target_langs = ['en', 'ru']
+
+        try:
+            base_translation = self.translations.get(language_code=base_lang)
+        except Exception as e:
+            print(f"⚠️ No base translation found for {base_lang}: {e}")
+            return
+
+        for lang in target_langs:
+            try:
+                if self.translations.filter(language_code=lang).exists():
+                    continue
+
+                translated_name = translator.translate(
+                    base_translation.name,
+                    src=base_lang,
+                    dest=lang
+                ).text
+
+                self.create_translation(
+                    language_code=lang,
+                    name=translated_name,
+                    slug=slugify(translated_name, allow_unicode=True),
+                )
+                print(f"✅ Translated {lang}: {translated_name}")
+            except Exception as e:
+                print(f"❌ Translation failed for {lang}: {e}")
+
+        # Ensure Uzbek slug exists
+        try:
+            uz_translation = self.translations.get(language_code=base_lang)
+            if not uz_translation.slug:
+                uz_translation.slug = slugify(uz_translation.name, allow_unicode=True)
+                uz_translation.save()
+        except Exception:
+            pass
 
 
 class Product(TranslatableModel, BaseModel):
@@ -93,7 +151,8 @@ class Product(TranslatableModel, BaseModel):
     unique_code = models.CharField(max_length=50, default=get_unique_code,blank=True, null=True)
     sku = models.CharField(max_length=100, blank=True, null=True, unique=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    category = models.ForeignKey('Category', on_delete=models.CASCADE)
+    warranty_months = models.IntegerField(blank=True, null=True, default=12)
+    subcategory = models.ForeignKey(SubCategory, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return self.safe_translation_getter('name') or 'Unnamed Product'
@@ -138,47 +197,49 @@ class Product(TranslatableModel, BaseModel):
                 print(f"❌ Translation failed for {lang}: {e}")
 
 
-    # def save(self, *args, **kwargs):
-    #     self.set_current_language(base_lang)
-    #     if not self.translations__slug:
-    #         self.translations__slug = slugify(f"{self.translations__name}-{self.unique_code}", allow_unicode=True)
+class ProductLongDesc(TranslatableModel, BaseModel):
+    translations = TranslatedFields(
+        long_desc = models.TextField(blank=True, null=True),
+    )
+    
+    product = models.ForeignKey(
+        Product, related_name='long_desc', 
+        verbose_name=_("product_long_desc"), 
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+        )
 
-    #     super().save(*args, **kwargs)
 
-    #     base_lang = 'uz'
-    #     target_langs = ['en', 'ru']
+class ProductUsage(TranslatableModel, BaseModel):
+    translations = TranslatedFields(
+        usage = models.TextField(blank=True, null=True)
+    )
+    
+    product = models.ForeignKey(
+        Product, related_name='usage', 
+        verbose_name=_("product_usage"), 
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+        )
 
-    #     self.set_current_language(base_lang)
-    #     if not self.translations.get(language_code=base_lang).slug:
-    #         self.translations.get(language_code=base_lang).slug = slugify(f"{self.name}-{self.unique_code}", allow_unicode=True)
-    #         super().save(update_fields=['slug'])
 
-    #     try:
-    #         base_translation = self.translations.get(language_code=base_lang)
-    #     except Exception as e:
-    #         print(f"⚠️ No base translation found for {base_lang}: {e}")
-    #         return
+class ProductPackageContentImages(TranslatableModel, BaseModel):
+    translations = TranslatedFields(
+        image = models.ImageField(upload_to='products/package_content/', blank=True, null=True)
+    )
+    
+    product = models.ForeignKey(
+        Product, related_name='package_content_images', 
+        verbose_name=_("product_package_content_images"), 
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+        )
 
-    #     for lang in target_langs:
-    #         if self.translations.filter(language_code=lang).exists():
-    #             continue
-
-    #         try:
-    #             translated_name = translator.translate(base_translation.name, src=base_lang, dest=lang).text
-    #             translated_desc = translator.translate(base_translation.description, src=base_lang, dest=lang).text
-    #             translated_slug = slugify(f"{translated_name}-{self.unique_code}", allow_unicode=True)
-
-    #             # Safe translation creation
-    #             self.create_translation(
-    #                 language_code=lang,
-    #                 name=translated_name,
-    #                 description=translated_desc,
-    #                 slug=translated_slug
-    #             )
-
-    #             print(f"✅ Translated {lang}: {translated_name}")
-    #         except Exception as e:
-    #             print(f"❌ Translation failed for {lang}: {e}")
+    def __str__(self):
+        return self.safe_translation_getter('image') or 'Unnamed Product Package Content Image'
 
 
 class ProductSpecs(TranslatableModel, BaseModel):
@@ -190,8 +251,17 @@ class ProductSpecs(TranslatableModel, BaseModel):
     product = models.ForeignKey(
         Product, related_name='specs', 
         verbose_name=_("product_specs"), 
-        on_delete=models.CASCADE
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
         )
+
+    def __str__(self, any_language=True):
+        specs_data = self.safe_translation_getter('specs', any_language=any_language)
+        if specs_data is not None:
+            # Ensure the JSONField content (which can be a dict) is converted to a string
+            return str(specs_data)
+        return "Product specs"
 
 
 class ProductImage(BaseModel):
@@ -199,7 +269,7 @@ class ProductImage(BaseModel):
     Multiple images per product.
     Store ordering so admin can control image order. Use an ImageField for uploads.
     """
-    product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, related_name='images', on_delete=models.SET_NULL, null=True, blank=True)
     image = models.ImageField(upload_to='products/', blank=True, null=True)
     alt = models.CharField(max_length=255, blank=True)
     ordering = models.PositiveIntegerField(default=0)
@@ -215,7 +285,7 @@ class Certificates(BaseModel):
     """Multiple images per product.
 
     """
-    image = models.ImageField(upload_to='certificates/')
+    image = models.ImageField(upload_to='certificates/', blank=True, null=True)
     ordering = models.PositiveIntegerField(default=0)
 
     def __str__(self):
@@ -224,12 +294,13 @@ class Certificates(BaseModel):
 
 class Company(TranslatableModel, BaseModel):
     translations = TranslatedFields(
-        name=models.CharField(max_length=255),
-        address=models.CharField(max_length=255),
-        about_us=models.TextField(),
+        name=models.CharField(max_length=255, blank=True, null=True),
+        address=models.CharField(max_length=255, blank=True, null=True),
+        about_us=models.TextField(max_length=255, blank=True, null=True),
     )
-    phone = models.CharField(max_length=50)
-    email = models.EmailField()
+    logo = models.ImageField(upload_to='company/', blank=True, null=True)
+    phone = models.CharField(max_length=50, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
     website = models.URLField(max_length=2000, blank=True, null=True)
 
     def __str__(self):

@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from .models import Certificates, Category, Product, ProductImage, Company, Partners, ServiceLocation, City, ServiceCenterDescription, Banner
+from .models import Certificates, SubCategory, Category, Product, ProductImage, Company, Partners, ServiceLocation, City, ServiceCenterDescription, Banner
 from .serilializers import (
     CitySerializer,
     ServiceLocationSerializer,
@@ -113,12 +113,12 @@ class ProductDetailView(generics.RetrieveAPIView):
             return (
                 Product.objects.translated(lang)
                 .prefetch_related("specs", "images")
-                .select_related("category")
+                .select_related("subcategory")
             )
 
     def get_related_products(self):
         product = self.get_object()
-        return Product.objects.filter(category=product.category).exclude(id=product.id)[:4]
+        return Product.objects.filter(subcategory=product.subcategory).exclude(id=product.id)[:5]
         
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -169,13 +169,13 @@ class ProductListView(generics.ListAPIView):
         lang = self.request.query_params.get('lang', 'uz')
 
         if category_slug:
-            cat = Category.objects.translated(lang, fallback=True).filter(translations__slug=category_slug).first()
+            cat = SubCategory.objects.translated(lang, fallback=True).filter(translations__slug=category_slug).first()
             if cat:
-                queryset = queryset.filter(category_id=cat.id)
+                queryset = queryset.filter(subcategory_id=cat.id)
             else:
                 queryset = queryset.none()
         elif category_id:
-            queryset = queryset.filter(category_id=category_id)
+            queryset = queryset.filter(subcategory_id=category_id)
 
         return queryset
     
@@ -191,7 +191,6 @@ class ProductImageView(APIView):
     def get(self,request):
         product_id = self.request.query_params.get('product')
         images = ProductImage.objects.filter(product_id=product_id)
-        print(images)
         serializer = ProductImageSerializer(images, many=True, context={'request': request})
         return Response(serializer.data)
 

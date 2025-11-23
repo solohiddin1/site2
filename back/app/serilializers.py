@@ -1,11 +1,34 @@
 from rest_framework import serializers
 from .models import (Product, Category, ProductImage, Certificates, 
                      Company, Partners, City, ServiceLocation, 
+                     SubCategory,ProductPackageContentImages,
+                     ProductLongDesc,
                      ServiceCenterDescription, Banner, 
-                     ProductSpecs
+                     ProductSpecs, ProductUsage
                      )
+
 from parler_rest.serializers import TranslatableModelSerializer, TranslatedFieldsField
 
+class ProductUsageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductUsage
+        fields = ('id', 'product', 'usage')
+
+class ProductPackageContentImagesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductPackageContentImages
+        fields = ['id', 'product_package_content', 'image']
+
+class ProductPackageContentSerializer(serializers.ModelSerializer):
+    images = ProductPackageContentImagesSerializer(many=True, read_only=True)
+    class Meta:
+        model = ProductPackageContentImages
+        fields = ['id', 'product_package_content', 'images']
+
+class ProductLongDescSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductLongDesc
+        fields = ['id', 'product', 'description', 'usage']
 
 class ProductSpecsSerializer(TranslatableModelSerializer):
     translations = TranslatedFieldsField(shared_model=ProductSpecs)
@@ -38,24 +61,35 @@ class RelatedProductSerializer(TranslatableModelSerializer):
     images = ProductImageSerializer(many=True, read_only=True)
     class Meta:
         model = Product
-        fields = ['id', 'translations', 'sku', 'price', 'category', 'images']  # no related_products
+        fields = ['id', 'translations', 'sku', 'price', 'images']  # no related_products
+
+
+class SubCategorySerializer(TranslatableModelSerializer):
+    translations = TranslatedFieldsField(shared_model=SubCategory)
+    class Meta:
+        model = SubCategory
+        fields = ['id', 'translations', 'image']
 
 
 class ProductSerializer(TranslatableModelSerializer):
     # related_products = ProductSerializer(many=True, read_only=True, source='get_related_products')
     related_products = serializers.SerializerMethodField()
-
+    package_content = ProductPackageContentSerializer(many=True, read_only=True)
+    long_desc = ProductLongDescSerializer(many=True, read_only=True)
     translations = TranslatedFieldsField(shared_model=Product)
     specs = ProductSpecsSerializer(many=True, read_only=True)
-    category = CategorySerializer(read_only=True)
+    usage = ProductUsageSerializer(many=True, read_only=True)
+    subcategory = SubCategorySerializer(read_only=True)
     images = ProductImageSerializer(many=True, read_only=True)
     
     class Meta:
         model = Product
-        fields = ['id', 'translations', 'sku', 'price', 'category', 'images', 'specs', 'related_products']
+        fields = ['id', 'translations', 'sku', 'price', 'images', 
+        'specs', 'usage', 'subcategory', 'related_products', 
+        'package_content', 'long_desc']
 
     def get_related_products(self, obj):
-        qs = Product.objects.filter(category=obj.category).exclude(id=obj.id)[:4]
+        qs = Product.objects.filter(subcategory=obj.subcategory).exclude(id=obj.id)[:4]
         return RelatedProductSerializer(qs, many=True, context=self.context).data
         
         # related_products = obj.get_related_products()
