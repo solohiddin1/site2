@@ -25,10 +25,11 @@ class ProductPackageContentSerializer(serializers.ModelSerializer):
         model = ProductPackageContentImages
         fields = ['id', 'product_package_content', 'images']
 
-class ProductLongDescSerializer(serializers.ModelSerializer):
+class ProductLongDescSerializer(TranslatableModelSerializer):
+    translations = TranslatedFieldsField(shared_model=ProductLongDesc)
     class Meta:
         model = ProductLongDesc
-        fields = ['id', 'product', 'description', 'usage']
+        fields = ['id', 'product', 'translations']
 
 class ProductSpecsSerializer(TranslatableModelSerializer):
     translations = TranslatedFieldsField(shared_model=ProductSpecs)
