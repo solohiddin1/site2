@@ -299,6 +299,10 @@ class Company(TranslatableModel, BaseModel):
         about_us=models.TextField(max_length=255, blank=True, null=True),
     )
     logo = models.ImageField(upload_to='company/', blank=True, null=True)
+    telegram = models.URLField(max_length=2000, blank=True, null=True)
+    instagram = models.URLField(max_length=2000, blank=True, null=True)
+    facebook = models.URLField(max_length=2000, blank=True, null=True)
+    youtube = models.URLField(max_length=2000, blank=True, null=True)
     phone = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     website = models.URLField(max_length=2000, blank=True, null=True)

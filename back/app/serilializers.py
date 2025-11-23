@@ -68,7 +68,7 @@ class SubCategorySerializer(TranslatableModelSerializer):
     translations = TranslatedFieldsField(shared_model=SubCategory)
     class Meta:
         model = SubCategory
-        fields = ['id', 'translations', 'image']
+        fields = ['id', 'translations']
 
 
 class ProductSerializer(TranslatableModelSerializer):
@@ -101,11 +101,44 @@ class CertificatesSerializer(serializers.ModelSerializer):
         model = Certificates
         fields = ['id', 'image', 'ordering']
 
+        
+
+class CategoriesWIithSubcategoriesSerializer(TranslatableModelSerializer):
+    subcategories = serializers.SerializerMethodField()
+    translations = TranslatedFieldsField(shared_model=Category)
+
+    def get_subcategories(self, obj):
+        qs = obj.subcategories.all()
+        return SubCategorySerializer(qs, many=True, context=self.context).data
+
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'slug', 'image', 'subcategories', 'translations']
+
 class CompanySerializer(TranslatableModelSerializer):
     translations = TranslatedFieldsField(shared_model=Company)
+    categories = serializers.SerializerMethodField()
+    # categories = CategoriesWIithSubcategoriesSerializer(many=True, read_only=True)
+
+    def get_categories(self, obj):
+        qs = Category.objects.all()
+        return CategoriesWIithSubcategoriesSerializer(qs, many=True, context=self.context).data
+
     class Meta:
         model = Company
-        fields = ['id', 'translations', 'phone', 'email', 'website']
+        fields = [
+            'logo',
+            'telegram',
+            'instagram',
+            'facebook',
+            'youtube',
+            'phone',
+            'email',
+            'website',
+            'translations',
+            'categories',
+        ]
+
 
 class PartnersSerializer(serializers.ModelSerializer):
     class Meta:

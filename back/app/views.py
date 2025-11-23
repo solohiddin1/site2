@@ -22,7 +22,7 @@ from rest_framework import generics
 # class CategoryTranslationSerializer(APIView)
 class BannerView(APIView):
     def get(self, request, *args, **kwargs):
-        lang = request.GET.get('lang', 'en')
+        lang = request.GET.get('language', 'en')
         banners = Banner.objects.all().translated(lang)  # parler query for language
         data = []
         for b in banners:
