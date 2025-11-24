@@ -20,9 +20,6 @@ urlpatterns = [
     path('partners/',PartnersView.as_view()),
     path('banner/', BannerView.as_view(),name='banners'),
 
-    # path('products/all/', ProductViewSet.as_view(), name='products-all'),
-    # path('products/', ProductByCategoryViewSet.as_view({'get': 'list'}), name='product-images-list'),
-    # path('products/<int:pk>/', ProductView.as_view(), name='product-images'),
     path('certificates/', CertificatesViewSet.as_view(), name='certificates'),
 
     path('product-translations/', ProductViewSet.as_view(), name='product-images-list'),
@@ -32,8 +29,6 @@ urlpatterns = [
 
     path('product-images/', ProductImageView.as_view(), name='product-detail'),
     # path('product-images/', ProductImageView.as_view(), name='product-images'),
-    # path('product-translations/', ProductTranslationViewDetail.as_view(), name='product-translation-detail'),
-    # path('languages/', LanguageViewSet.as_view(), name='languages'),
     
     path('categories/', CategoryViewSet.as_view(), name='categories'),  
     path('categories/<slug:slug>/', CategoriesDetailView.as_view(), name='categories-detail'),  
@@ -45,9 +40,4 @@ urlpatterns = [
     path('service/', ServiceLocationViewSet.as_view(), name='service-locations'),
     path('service-center-descriptions/', ServiceCenterDescriptionViewSet.as_view(), name='service-center-descriptions'),
     # path('service-locations/', ServiceLocationViewSet.as_view(), name='service-locations'),
-    # path('product-images/', ProductImageViewSet.as_view({'get': 'list'}), name='product-images-list'),
-    # path('product-images/<int:pk>/', ProductImageViewSet.as_view({'get': 'retrieve'}), name='product-image-detail'),
-    # product-translations
-
-    # path('products/')
 ]

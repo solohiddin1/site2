@@ -9,10 +9,6 @@ from .models import (Product, Category, ProductImage, Certificates,
 
 from parler_rest.serializers import TranslatableModelSerializer, TranslatedFieldsField
 
-class ProductUsageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductUsage
-        fields = ('id', 'product', 'usage')
 
 class ProductPackageContentImagesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -31,11 +27,6 @@ class ProductLongDescSerializer(TranslatableModelSerializer):
         model = ProductLongDesc
         fields = ['id', 'product', 'translations']
 
-class ProductSpecsSerializer(TranslatableModelSerializer):
-    translations = TranslatedFieldsField(shared_model=ProductSpecs)
-    class Meta:
-        model = ProductSpecs
-        fields = ['id', 'translations', 'product']
 
 class BannerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -71,6 +62,18 @@ class SubCategorySerializer(TranslatableModelSerializer):
         model = SubCategory
         fields = ['id', 'translations']
 
+class ProductSpecsSerializer(TranslatableModelSerializer):
+    translations = TranslatedFieldsField(shared_model=ProductSpecs)
+    class Meta:
+        model = ProductSpecs
+        fields = ['id', 'product', 'translations']
+
+class ProductUsageSerializer(TranslatableModelSerializer):
+    translations = TranslatedFieldsField(shared_model=ProductUsage)
+
+    class Meta:
+        model = ProductUsage
+        fields = ('id', 'product', 'translations')
 
 class ProductSerializer(TranslatableModelSerializer):
     # related_products = ProductSerializer(many=True, read_only=True, source='get_related_products')
