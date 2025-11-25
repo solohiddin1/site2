@@ -137,26 +137,43 @@ class ProductDetailView(generics.RetrieveAPIView):
 #         return Product.objects.translated(lang, fallback=True)
 
 
-class ProductByCategoryViewSet(generics.RetrieveAPIView):
+class ProductBySubCategoryView(generics.ListAPIView):
+    """List products for a given subcategory.
+
+    Supports:
+    - URL path lookup by translated slug (when mounted at /subcategories/<slug:slug>/products/)
+    - query param `subcategory_slug` + `lang`
+    - query param `subcategory` (numeric id) as fallback
+    """
     serializer_class = ProductSerializer
-    # lookup_field = 'slug'
 
     def get_queryset(self):
-        # Support both category id and category slug filtering.
-        category_id = self.request.query_params.get('category')  # from ?category=1
-        category_slug = self.request.query_params.get('category_slug')
+        # Support URL param slug (handled by urlconf) or query params
         lang = self.request.query_params.get('lang', 'uz')
 
-        if category_slug:
-            cat = Category.objects.translated(lang, fallback=True).filter(translations__slug=category_slug).first()
-            if cat:
-                return Product.objects.translated(lang, fallback=True).filter(category_id=cat.id)
-
+        # Prefer URL kwarg 'slug' when available (e.g., /subcategories/<slug>/products/)
+        slug = self.kwargs.get('slug')
+        if slug:
+            subcat = SubCategory.objects.translated(lang, fallback=True).filter(translations__slug=slug).first()
+            if subcat:
+                return Product.objects.translated(lang, fallback=True).filter(subcategory_id=subcat.id)
             return Product.objects.none()
 
-        if category_id is not None:
-            return Product.objects.translated(lang, fallback=True).filter(category_id=category_id)
-        return Product.objects.none()
+        # Fallback to query params
+        subcat_slug = self.request.query_params.get('subcategory_slug')
+        subcat_id = self.request.query_params.get('subcategory')
+
+        if subcat_slug:
+            subcat = SubCategory.objects.translated(lang, fallback=True).filter(translations__slug=subcat_slug).first()
+            if subcat:
+                return Product.objects.translated(lang, fallback=True).filter(subcategory_id=subcat.id)
+            return Product.objects.none()
+
+        if subcat_id:
+            return Product.objects.translated(lang, fallback=True).filter(subcategory_id=subcat_id)
+
+        # No filter: return all products
+        return Product.objects.translated(lang, fallback=True).all()
 
 
 class ProductListView(generics.ListAPIView):
