@@ -77,7 +77,7 @@ class CertificatesViewSet(APIView):
 class CompanyViewSet(APIView):
     def get(self, request):
         companies = Company.objects.all()
-        serializer = CompanySerializer(companies, many=True)
+        serializer = CompanySerializer(companies, many=True, context={'request': request})
         return Response(serializer.data)
 
 class CategoryViewSet(APIView):
@@ -212,4 +212,10 @@ class NewsDetailView(APIView):
         # data = Category.objects.filter(is_news=True)
 
         # serializer = CategorySerializer(data,many=True)
+        return Response(status=200)
+
+class AboutUsView(generics.ListAPIView):
+    queryset = Company.objects.all()
+    serializer_class = CompanySerializer
+    def get(self,request):
         return Response(status=200)
