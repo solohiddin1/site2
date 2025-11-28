@@ -6,6 +6,7 @@ from .serilializers import (
     ServiceLocationSerializer,
     ServiceCenterDescriptionSerializer,
     CategorySerializer,
+    SubCategorySerializer,
     ProductSerializer,
     ProductImageSerializer,
     CertificatesSerializer,
@@ -154,9 +155,10 @@ class ProductBySubCategoryView(generics.ListAPIView):
         # Prefer URL kwarg 'slug' when available (e.g., /subcategories/<slug>/products/)
         slug = self.kwargs.get('slug')
         if slug:
-            subcat = SubCategory.objects.translated(lang, fallback=True).filter(translations__slug=slug).first()
+            # Use language() method to set context, then filter
+            subcat = SubCategory.objects.language(lang).filter(translations__slug=slug, translations__language_code=lang).first()
             if subcat:
-                return Product.objects.translated(lang, fallback=True).filter(subcategory_id=subcat.id)
+                return Product.objects.language(lang).filter(subcategory_id=subcat.id)
             return Product.objects.none()
 
         # Fallback to query params
@@ -164,35 +166,53 @@ class ProductBySubCategoryView(generics.ListAPIView):
         subcat_id = self.request.query_params.get('subcategory')
 
         if subcat_slug:
-            subcat = SubCategory.objects.translated(lang, fallback=True).filter(translations__slug=subcat_slug).first()
+            subcat = SubCategory.objects.language(lang).filter(translations__slug=subcat_slug, translations__language_code=lang).first()
             if subcat:
-                return Product.objects.translated(lang, fallback=True).filter(subcategory_id=subcat.id)
+                return Product.objects.language(lang).filter(subcategory_id=subcat.id)
             return Product.objects.none()
 
         if subcat_id:
-            return Product.objects.translated(lang, fallback=True).filter(subcategory_id=subcat_id)
+            return Product.objects.language(lang).filter(subcategory_id=subcat_id)
 
         # No filter: return all products
-        return Product.objects.translated(lang, fallback=True).all()
+        return Product.objects.language(lang).all()
 
 
 class ProductListView(generics.ListAPIView):
+    """List products filtered by subcategory.
+    
+    Supports:
+    - query param `subcategory_slug` + `lang` (recommended)
+    - query param `subcategory` (numeric id)
+    - query param `category_slug` + `lang` (deprecated, but kept for backward compatibility)
+    - query param `category` (deprecated, but kept for backward compatibility)
+    """
     serializer_class = ProductSerializer
 
     def get_queryset(self):
         queryset = Product.objects.all()
+        lang = self.request.query_params.get('lang', 'uz')
+        
+        # New parameter names (recommended)
+        subcategory_id = self.request.query_params.get('subcategory')
+        subcategory_slug = self.request.query_params.get('subcategory_slug')
+        
+        # Legacy parameter names (backward compatibility)
         category_id = self.request.query_params.get('category')
         category_slug = self.request.query_params.get('category_slug')
-        lang = self.request.query_params.get('lang', 'uz')
 
-        if category_slug:
-            cat = SubCategory.objects.translated(lang, fallback=True).filter(translations__slug=category_slug).first()
-            if cat:
-                queryset = queryset.filter(subcategory_id=cat.id)
+        # Use new params first, fallback to legacy params
+        slug_param = subcategory_slug or category_slug
+        id_param = subcategory_id or category_id
+
+        if slug_param:
+            subcat = SubCategory.objects.language(lang).filter(translations__slug=slug_param, translations__language_code=lang).first()
+            if subcat:
+                queryset = queryset.filter(subcategory_id=subcat.id)
             else:
                 queryset = queryset.none()
-        elif category_id:
-            queryset = queryset.filter(subcategory_id=category_id)
+        elif id_param:
+            queryset = queryset.filter(subcategory_id=id_param)
 
         return queryset
     
@@ -216,11 +236,14 @@ class CategoriesDetailView(APIView):
     def get(self, request, slug):
         # Return category by translated slug. Use ?lang= to choose language (default 'uz').
         lang = request.GET.get('lang', 'uz')
-        category = Category.objects.translated(lang, fallback=True).filter(translations__slug=slug).first()
+        category = Category.objects.language(lang).filter(translations__slug=slug, translations__language_code=lang).first()
+        subcategories = SubCategory.objects.filter(category=category)
         if not category:
             return Response({'detail': 'Not found.'}, status=404)
 
         serializer = CategorySerializer(category, context={'request': request})
+        serializer.subcategories = SubCategorySerializer(subcategories, many=True, context={'request': request}).data
+        # print(serializer.data)        
         return Response(serializer.data, status=200)
 
 

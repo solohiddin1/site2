@@ -136,7 +136,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 CORS_ALLOW_ALL_ORIGINS = True  # or use CORS_ALLOWED_ORIGINS = ['http://localhost:5173']
-BACKEND_URL = 'http://localhost:8000'
+BACKEND_URL = 'http://localhost:8001'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/

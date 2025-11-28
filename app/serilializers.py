@@ -37,10 +37,18 @@ class BannerSerializer(serializers.ModelSerializer):
 # For translated models
 class CategorySerializer(TranslatableModelSerializer):
     translations = TranslatedFieldsField(shared_model=Category)
+    subcategories = serializers.SerializerMethodField()
+    subcategories_count = serializers.SerializerMethodField()
     class Meta:
         model = Category
-        fields = ['id', 'translations', 'image']
+        fields = ['id', 'translations', 'image', 'subcategories', 'subcategories_count']
 
+    def get_subcategories(self, obj):
+        qs = obj.subcategories.all()
+        return SubCategorySerializer(qs, many=True, context=self.context).data
+
+    def get_subcategories_count(self, obj):
+        return obj.subcategories.all().count()
 
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
