@@ -81,10 +81,13 @@ class CompanyViewSet(APIView):
         serializer = CompanySerializer(companies, many=True, context={'request': request})
         return Response(serializer.data)
 
-class CategoryViewSet(APIView):
+class CategoryViewSet(generics.ListAPIView):
+    serializer_class = CategorySerializer
+    queryset = Category.objects.all()
+
     def get(self, request):
         categories = Category.objects.all()
-        serializer = CategorySerializer(categories, many=True)
+        serializer = self.get_serializer(categories, many=True)
         return Response(serializer.data)
 
 
@@ -94,7 +97,7 @@ class ProductViewSet(generics.ListAPIView):
 
     def get(self, request):
         products = Product.objects.all()
-        serializer = ProductSerializer(products, many=True)
+        serializer = self.get_serializer(products, many=True)
         return Response(serializer.data)
 
 
