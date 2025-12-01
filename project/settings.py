@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'drf_yasg',
+    'ckeditor',
+    'ckeditor_uploader',
     'app',
     'rest_framework',
     'corsheaders',
@@ -134,6 +136,8 @@ USE_TZ = True
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+CKEDITOR_UPLOAD_PATH = "uploads/"
 
 CORS_ALLOW_ALL_ORIGINS = True  # or use CORS_ALLOWED_ORIGINS = ['http://localhost:5173']
 BACKEND_URL = 'http://localhost:8001'
