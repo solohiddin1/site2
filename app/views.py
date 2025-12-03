@@ -62,10 +62,11 @@ class ServiceCenterDescriptionViewSet(APIView):
         serializer = ServiceCenterDescriptionSerializer(service_center_descriptions, many=True,context={'request': request})
         return Response(serializer.data)
 
+
 class PartnersView(APIView):
-    def get(self,request):
-        partners = Partners.objects.all()
-        serializer = PartnersSerializer(partners, many=True)
+    def get(self, request):
+        partners = Partners.objects.all().order_by('id')
+        serializer = PartnersSerializer(partners, many=True, context={'request': request})
         return Response(serializer.data)
     
 

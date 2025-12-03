@@ -189,10 +189,11 @@ class CompanyAdmin(TranslatableAdmin):
 class PartnersAdmin(admin.ModelAdmin):
     list_display = ('name', 'image_preview')
     readonly_fields = ('image_preview',)
+    search_fields = ('translations__name',)
 
     def image_preview(self, obj):
         if obj.image:
-            return f'<img src="{obj.image.url}" width="50"/>'
+            return format_html('<img src="{}" width="100" height="100" />', obj.image.url)
         return "-"
     image_preview.allow_tags = True
     image_preview.short_description = 'Logo'

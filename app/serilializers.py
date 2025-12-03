@@ -153,9 +153,11 @@ class CompanySerializer(TranslatableModelSerializer):
 
 
 class PartnersSerializer(serializers.ModelSerializer):
+    logo = serializers.ImageField(source='image')
+    
     class Meta:
         model = Partners
-        fields = ['id', 'name', 'image']
+        fields = ['id', 'name', 'logo']
 
 class ServiceLocationSerializer(serializers.ModelSerializer):
     class Meta:
