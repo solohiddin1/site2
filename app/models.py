@@ -430,5 +430,6 @@ class Banner(TranslatableModel):
         image = models.ImageField(upload_to='banners/'),
         alt = models.CharField(max_length=255, blank=True, null=True),
     )
+    is_active = models.BooleanField(default=True)
     def __str__(self):
         return self.safe_translation_getter('name', any_language=True) or "Banner"

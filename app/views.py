@@ -23,8 +23,8 @@ from rest_framework import generics
 # class CategoryTranslationSerializer(APIView)
 class BannerView(APIView):
     def get(self, request, *args, **kwargs):
-        lang = request.GET.get('language', 'en')
-        banners = Banner.objects.all().translated(lang)  # parler query for language
+        lang = request.GET.get('language', 'uz')
+        banners = Banner.objects.filter(is_active=True).translated(lang)  # parler query for language
         data = []
         for b in banners:
             # Guard against missing image/field
@@ -39,6 +39,7 @@ class BannerView(APIView):
             data.append({
                 "name": b.safe_translation_getter('name', any_language=True),
                 "image": image_url,
+                "is_active": b.is_active,
                 "alt": b.safe_translation_getter('alt', any_language=True),
             })
         return Response(data)
