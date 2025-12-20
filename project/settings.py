@@ -140,7 +140,25 @@ MEDIA_ROOT = BASE_DIR / 'media'
 CKEDITOR_UPLOAD_PATH = "uploads/"
 
 CORS_ALLOW_ALL_ORIGINS = True  # or use CORS_ALLOWED_ORIGINS = ['http://localhost:5173']
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'https://7f0a7e0d2031.ngrok-free.app',
+]
 BACKEND_URL = 'http://localhost:8001'
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
