@@ -23,18 +23,18 @@ urlpatterns = [
     path('certificates/', CertificatesViewSet.as_view(), name='certificates'),
 
     path('product-translations/', ProductViewSet.as_view(), name='product-images-list'),
-    path('products/<slug:slug>/', ProductDetailView.as_view(), name='product-images-list'),
+    path('products/<path:slug>/', ProductDetailView.as_view(), name='product-images-list'),
     path('products/', ProductListView.as_view(), name='product-images-list'),
 
     # Products by subcategory (slug)
-    path('subcategories/<slug:slug>/products/', ProductBySubCategoryView.as_view(), name='subcategory-products'),
+    path('subcategories/<path:slug>/products/', ProductBySubCategoryView.as_view(), name='subcategory-products'),
 
 
     path('product-images/', ProductImageView.as_view(), name='product-detail'),
     # path('product-images/', ProductImageView.as_view(), name='product-images'),
     
     path('categories/', CategoryViewSet.as_view(), name='categories'),  
-    path('categories/<slug:slug>/', CategoriesDetailView.as_view(), name='categories-detail'),  
+    path('categories/<path:slug>/', CategoriesDetailView.as_view(), name='categories-detail'),  
     
     path('companies/', CompanyViewSet.as_view(), name='companies'),
     path('news/', NewsDetailView.as_view(), name='news-detail'),
