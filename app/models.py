@@ -150,7 +150,7 @@ class Product(TranslatableModel, BaseModel):
 
     unique_code = models.CharField(max_length=50, default=get_unique_code,blank=True, null=True)
     sku = models.CharField(max_length=100, blank=True, null=True, unique=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    # price removed
     warranty_months = models.IntegerField(blank=True, null=True, default=12)
     subcategory = models.ForeignKey(SubCategory, on_delete=models.CASCADE, blank=True, null=True)
 

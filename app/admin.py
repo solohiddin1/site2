@@ -153,7 +153,7 @@ class ProductInline(admin.TabularInline):
 @admin.register(Product)
 class ProductAdmin(TranslatableAdmin):
     inlines = [ProductInline, ProductSpecsInline, ProductLongDescInline, ProductUsageInline, ProductPackageContentImagesInline]
-    list_display = ('name', 'sku', 'price', 'subcategory', 'id')
+    list_display = ('name', 'sku', 'subcategory', 'id')
     search_fields = ('translations__name', 'sku', 'subcategory__name')
     list_filter = ('subcategory',)
     # prepopulated_fields = {"translations__slug": ("translations__name",)}

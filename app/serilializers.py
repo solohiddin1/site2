@@ -66,7 +66,7 @@ class RelatedProductSerializer(TranslatableModelSerializer):
     images = ProductImageSerializer(many=True, read_only=True)
     class Meta:
         model = Product
-        fields = ['id', 'translations', 'sku', 'price', 'images']  # no related_products
+        fields = ['id', 'translations', 'sku', 'images']  # no related_products
 
 
 class SubCategorySerializer(TranslatableModelSerializer):
@@ -105,7 +105,7 @@ class ProductSerializer(TranslatableModelSerializer):
     
     class Meta:
         model = Product
-        fields = ['id', 'translations', 'sku', 'price', 'images', 
+        fields = ['id', 'translations', 'sku', 'images', 
         'specs', 'usage', 'subcategory', 'related_products', 
         'package_content', 'long_desc']
 
