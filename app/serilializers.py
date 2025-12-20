@@ -68,7 +68,7 @@ class SubCategorySerializer(TranslatableModelSerializer):
     translations = TranslatedFieldsField(shared_model=SubCategory)
     class Meta:
         model = SubCategory
-        fields = ['id', 'translations']
+        fields = ['id', 'translations', 'image']
 
 class ProductSpecsSerializer(TranslatableModelSerializer):
     translations = TranslatedFieldsField(shared_model=ProductSpecs)
