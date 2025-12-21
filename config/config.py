@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     DEBUG: bool
     ALLOWED_HOSTS: List[str] = os.getenv("ALLOWED_HOSTS", "").split(",")
+    TELEGRAM_TOKEN: str
+    CHAT_ID: str
 
     class Config:
         env_file = os.path.join(BASE_DIR, ".env")

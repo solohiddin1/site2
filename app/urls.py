@@ -4,7 +4,7 @@ from .views import (CategoryViewSet,
     CertificatesViewSet, CompanyViewSet, ProductBySubCategoryView,
     ProductImageView, CategoriesDetailView, PartnersView, NewsDetailView,
     CityViewSet, ServiceLocationViewSet, ServiceCenterDescriptionViewSet, ProductViewSet, ProductDetailView, ProductListView,
-    BannerView)
+    BannerView, ConnectWithUsView)
 
 router = DefaultRouter()
 # router.register(r'languages', LanguageViewSet)
@@ -25,7 +25,7 @@ urlpatterns = [
     path('product-translations/', ProductViewSet.as_view(), name='product-images-list'),
     path('products/<path:slug>/', ProductDetailView.as_view(), name='product-images-list'),
     path('products/', ProductListView.as_view(), name='product-images-list'),
-
+    path('connect_with_us/', ConnectWithUsView.as_view(), name='connect_with_us'),
     # Products by subcategory (slug)
     path('subcategories/<path:slug>/products/', ProductBySubCategoryView.as_view(), name='subcategory-products'),
 

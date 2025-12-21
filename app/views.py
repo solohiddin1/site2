@@ -1,6 +1,9 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from .models import Certificates, SubCategory, Category, Product, ProductImage, Company, Partners, ServiceLocation, City, ServiceCenterDescription, Banner
+from .models import Certificates, SubCategory, \
+    Category, Product, ProductImage, Company,\
+    Partners, ServiceLocation, City,\
+    ServiceCenterDescription, Banner, Connection
 from .serilializers import (
     CitySerializer,
     ServiceLocationSerializer,
@@ -17,7 +20,7 @@ from .serilializers import (
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import generics 
-
+from .utils import send_telegram_message
 # Create your views here.
 
 # class CategoryTranslationSerializer(APIView)
@@ -263,4 +266,15 @@ class AboutUsView(generics.ListAPIView):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
     def get(self,request):
+        return Response(status=200)
+
+
+class ConnectWithUsView(APIView):
+    def post(self,request):
+        Connection.objects.create(
+            name = request.data.get('name'),
+            phone_number = request.data.get('phone_number'),
+            message = request.data.get('message'),
+        )
+        send_telegram_message(request.data.get('name'),request.data.get('phone_number'),request.data.get('message'))
         return Response(status=200)

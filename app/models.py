@@ -433,3 +433,10 @@ class Banner(TranslatableModel):
     is_active = models.BooleanField(default=True)
     def __str__(self):
         return self.safe_translation_getter('name', any_language=True) or "Banner"
+
+
+class Connection(BaseModel):
+    name = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=50)
+    message = models.TextField()
+        
