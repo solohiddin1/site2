@@ -134,7 +134,7 @@ class CategoriesWIithSubcategoriesSerializer(TranslatableModelSerializer):
 
     class Meta:
         model = Category
-        fields = ['id', 'name', 'slug', 'image', 'subcategories', 'translations']
+        fields = ['id', 'name', 'slug', 'image', 'second_image', 'subcategories', 'translations']
 
 class CompanySerializer(TranslatableModelSerializer):
     translations = TranslatedFieldsField(shared_model=Company)
