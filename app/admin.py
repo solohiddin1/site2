@@ -73,11 +73,11 @@ class BannerAdmin(TranslatableAdmin):
 # admin.site.register(Services)
 
 # ---- LOCATION INLINE ----
-class ServiceLocationInline(admin.TabularInline):
-    model = ServiceLocation
-    extra = 0
-    fields = ('city', 'address', 'phone', 'email', 'map_url', 'description')
-    autocomplete_fields = ['city', 'description']  # optional for big lists
+# class ServiceLocationInline(admin.TabularInline):
+#     model = ServiceLocation
+#     extra = 0
+#     fields = ('city', 'address', 'phone', 'email', 'map_url', 'description')
+#     autocomplete_fields = ['city', 'description']  # optional for big lists
 
 # # ---- CITY ADMIN ----
 # @admin.register(City)
@@ -86,29 +86,29 @@ class ServiceLocationInline(admin.TabularInline):
 #     inlines = [ServiceLocationInline]  # Show locations directly in city
 
 # ---- LOCATION ADMIN (optional if you want direct editing) ----
-@admin.register(ServiceLocation)
-class ServiceLocationAdmin(admin.ModelAdmin):
-    list_display = ('city', 'address', 'phone', 'email')
-    autocomplete_fields = ['city', 'description']
+# @admin.register(ServiceLocation)
+# class ServiceLocationAdmin(admin.ModelAdmin):
+#     list_display = ('city', 'address', 'phone', 'email')
+#     autocomplete_fields = ['city', 'description']
 
 
 
-@admin.register(ServiceCenterDescription)
-class ServiceCenterDescriptionAdmin(TranslatableAdmin):
-    list_display = ('title',)
-    search_fields = ('translations__title',)  # << required for autocomplete
-    fieldsets = (
-        (None, {
-            'fields': ('title', 'description',)
-        }),
-    )
+# @admin.register(ServiceCenterDescription)
+# class ServiceCenterDescriptionAdmin(TranslatableAdmin):
+#     list_display = ('title',)
+#     search_fields = ('translations__title',)  # << required for autocomplete
+#     fieldsets = (
+#         (None, {
+#             'fields': ('title', 'description',)
+#         }),
+#     )
 
 
-@admin.register(City)
-class CityAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    search_fields = ('name',)  # << required for autocomplete
-    inlines = [ServiceLocationInline]
+# @admin.register(City)
+# class CityAdmin(admin.ModelAdmin):
+#     list_display = ('name',)
+#     search_fields = ('name',)  # << required for autocomplete
+#     inlines = [ServiceLocationInline]
 
 
 # @admin.register(ServiceLocation)
@@ -172,17 +172,17 @@ class SubCategoryAdmin(TranslatableAdmin):
     list_filter = ('category',)
     # prepopulated_fields = {"translations__slug": ("translations__name",)}
 
-@admin.register(Certificates)
-class CertificatesAdmin(admin.ModelAdmin):
-    list_display = ('id', 'image_preview', 'ordering')
-    readonly_fields = ('image_preview',)
+# @admin.register(Certificates)
+# class CertificatesAdmin(admin.ModelAdmin):
+#     list_display = ('id', 'image_preview', 'ordering')
+#     readonly_fields = ('image_preview',)
 
-    def image_preview(self, obj):
-        if obj.image:
-            return format_html('<img src="{}" width="100" height="100" />', obj.image.url)
-        return "-"
-    image_preview.allow_tags = True
-    image_preview.short_description = 'Preview'
+#     def image_preview(self, obj):
+#         if obj.image:
+#             return format_html('<img src="{}" width="100" height="100" />', obj.image.url)
+#         return "-"
+#     image_preview.allow_tags = True
+#     image_preview.short_description = 'Preview'
 
 
 @admin.register(Company)
