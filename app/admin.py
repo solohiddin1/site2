@@ -120,10 +120,9 @@ class CityAdmin(admin.ModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(TranslatableAdmin):
-    list_display=('name','id',)
-    # list_display=('name','id','image_thumbnail')
+    list_display=('name','id','image_thumbnail')
     search_fields=('translations__name',)
-    readonly_fields = ('image_thumbnail',)
+    readonly_fields = ('image_thumbnail', 'second_image_preview')
     # readonly_fields = ('image',)
     # prepopulated_fields = {'slug': ('name',)}
 
@@ -134,7 +133,13 @@ class CategoryAdmin(TranslatableAdmin):
         return ''
     # image_thumbnail.allow_tags = True
     image_thumbnail.short_description='Image preview'
-    # image_thumbnail.short_description='Image preview'
+
+    def second_image_preview(self, obj):
+        if obj.second_image:
+            return format_html('<img src="{}" width="100" height="100" />', obj.second_image.url)
+            # return f'<img src="{obj.image.url}" width="50"/>'
+        return ''
+    second_image_preview.short_description='Second Image Preview'
 
 class ProductInline(admin.TabularInline):
     model = ProductImage
@@ -156,6 +161,7 @@ class ProductAdmin(TranslatableAdmin):
     list_display = ('name', 'sku', 'subcategory', 'id')
     search_fields = ('translations__name', 'sku', 'subcategory__name')
     list_filter = ('subcategory',)
+    readonly_fields = ('unique_code',)
     # prepopulated_fields = {"translations__slug": ("translations__name",)}
 
 

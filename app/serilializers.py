@@ -42,7 +42,7 @@ class CategorySerializer(TranslatableModelSerializer):
     product_count = serializers.SerializerMethodField()
     class Meta:
         model = Category
-        fields = ['id', 'translations', 'image', 'subcategories', 'subcategories_count', 'product_count']
+        fields = ['id', 'translations', 'image', 'second_image', 'subcategories', 'subcategories_count', 'product_count']
 
     def get_subcategories(self, obj):
         qs = obj.subcategories.all()
