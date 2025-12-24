@@ -1,10 +1,10 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import (CategoryViewSet,
+from .views import (CategoryViewSet, SubCategoryViewSet,
     CertificatesViewSet, CompanyViewSet, ProductBySubCategoryView,
     ProductImageView, CategoriesDetailView, PartnersView, NewsDetailView,
     CityViewSet, ServiceLocationViewSet, ServiceCenterDescriptionViewSet, ProductViewSet, ProductDetailView, ProductListView,
-    BannerView, ConnectWithUsView)
+    BannerView, ConnectWithUsView, add_product_view, list_products_view, edit_product_view)
 
 router = DefaultRouter()
 # router.register(r'languages', LanguageViewSet)
@@ -26,6 +26,11 @@ urlpatterns = [
     path('products/<path:slug>/', ProductDetailView.as_view(), name='product-images-list'),
     path('products/', ProductListView.as_view(), name='product-images-list'),
     path('connect_with_us/', ConnectWithUsView.as_view(), name='connect_with_us'),
+    
+    # Admin product management
+    path('admin/products/', list_products_view, name='list_products'),
+    path('admin/add-product/', add_product_view, name='add_product'),
+    path('admin/edit-product/<int:product_id>/', edit_product_view, name='edit_product'),
     # Products by subcategory (slug)
     path('subcategories/<path:slug>/products/', ProductBySubCategoryView.as_view(), name='subcategory-products'),
 
@@ -35,6 +40,7 @@ urlpatterns = [
     
     path('categories/', CategoryViewSet.as_view(), name='categories'),  
     path('categories/<path:slug>/', CategoriesDetailView.as_view(), name='categories-detail'),  
+    path('subcategories/', SubCategoryViewSet.as_view(), name='subcategories'),  
     
     path('companies/', CompanyViewSet.as_view(), name='companies'),
     path('news/', NewsDetailView.as_view(), name='news-detail'),

@@ -1,0 +1,13 @@
+{% for inline_admin_formset in inline_admin_formsets %}
+    {% if inline_admin_formset.opts.model_name == "productspecs" %}
+        {{ inline_admin_formset.formset.management_form }}
+
+        <table class="specs-table">
+            {% for form in inline_admin_formset %}
+                <tr>
+                    <td>{{ form.specs }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+{% endfor %}

@@ -1,0 +1,16 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+{% block object-tools-items %}
+    <li>
+        <a href="{% url 'list_products' %}" class="viewlink" style="background-color: #3b82f6; color: white; padding: 10px 15px; border-radius: 4px; text-decoration: none; font-weight: 600; margin-right: 5px;">
+            📋 Mahsulotlar ro'yxati
+        </a>
+    </li>
+    <li>
+        <a href="{% url 'add_product' %}" class="addlink" style="background-color: #E31E24; color: white; padding: 10px 15px; border-radius: 4px; text-decoration: none; font-weight: 600;">
+            ➕ Yangi mahsulot qo'shish
+        </a>
+    </li>
+    {{ block.super }}
+{% endblock %}

@@ -1,3 +1,4 @@
+from django_json_widget.widgets import JSONEditorWidget
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import gettext_lazy as _
@@ -263,6 +264,11 @@ class ProductSpecs(TranslatableModel, BaseModel):
             # Ensure the JSONField content (which can be a dict) is converted to a string
             return str(specs_data)
         return "Product specs"
+
+    def formfield(self, **kwargs):
+        kwargs["widget"] = JSONEditorWidget
+        return super().formfield(**kwargs)
+
 
 
 class ProductImage(BaseModel):
