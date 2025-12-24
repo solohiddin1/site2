@@ -105,7 +105,7 @@ class ProductSerializer(TranslatableModelSerializer):
     
     class Meta:
         model = Product
-        fields = ['id', 'translations', 'sku', 'images', 
+        fields = ['id', 'translations', 'sku', 'warranty_months', 'images', 
         'specs', 'usage', 'subcategory', 'related_products', 
         'package_content', 'long_desc']
 
