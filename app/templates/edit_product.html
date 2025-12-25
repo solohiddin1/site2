@@ -240,13 +240,16 @@
                     {% if product.images.all %}
                         <div class="mb-4">
                             <p class="text-sm text-gray-600 mb-2">Mavjud rasmlar:</p>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="existing-images">
                                 {% for image in product.images.all %}
-                                    <div class="relative group">
+                                    <div class="relative group" id="image-{{ image.id }}">
                                         <img src="{{ image.image.url }}" alt="{{ image.alt }}" class="w-full h-32 object-cover rounded-lg">
                                         <span class="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
                                             #{{ image.ordering }}
                                         </span>
+                                        <button type="button" onclick="deleteExistingImage({{ image.id }})" class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                            ×
+                                        </button>
                                     </div>
                                 {% endfor %}
                             </div>
@@ -276,6 +279,42 @@
     <script>
         // Store subcategories data
         const subcategoriesData = {{ subcategories_json|safe }};
+
+        // Delete existing image
+        function deleteExistingImage(imageId) {
+            if (!confirm('Ushbu rasmni o\'chirishni xohlaysizmi?')) {
+                return;
+            }
+
+            fetch(`/api/admin/delete-image/${imageId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the image element from DOM
+                    const imageElement = document.getElementById(`image-${imageId}`);
+                    if (imageElement) {
+                        imageElement.remove();
+                    }
+                    
+                    // Check if any images left
+                    const container = document.getElementById('existing-images');
+                    if (container && container.children.length === 0) {
+                        container.parentElement.remove();
+                    }
+                } else {
+                    alert('Xatolik: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Xatolik yuz berdi: ' + error);
+            });
+        }
 
         // Tab switching
         function switchTab(lang) {
