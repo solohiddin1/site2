@@ -7,9 +7,10 @@
     <title>Mahsulot qo'shish - Admin Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        body { overflow-x: hidden; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .tab-button { cursor: pointer; padding: 0.75rem 1.5rem; border-bottom: 2px solid transparent; }
+        .tab-button { cursor: pointer; padding: 0.75rem 1.5rem; border-bottom: 2px solid transparent; font-size: 0.875rem; }
         .tab-button.active { border-bottom-color: #E31E24; color: #E31E24; font-weight: 600; }
         .btn-primary { background-color: #E31E24; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; }
         .btn-primary:hover { background-color: #c01920; }
@@ -22,22 +23,27 @@
         .image-preview { position: relative; }
         .image-preview:hover .delete-btn { opacity: 1; }
         .delete-btn { opacity: 0; transition: opacity 0.2s; position: absolute; top: 0.5rem; right: 0.5rem; }
+        @media (max-width: 768px) {
+            .tab-button { padding: 0.5rem 0.75rem; font-size: 0.75rem; }
+            .btn-primary, .btn-secondary { padding: 0.5rem 1rem; font-size: 0.875rem; }
+            .delete-btn { opacity: 1; }
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <div class="container mx-auto px-4 py-8 max-w-6xl">
+    <div class="w-full max-w-6xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <!-- Header -->
-        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Mahsulotni Tahrirlash</h1>
-                    <p class="text-gray-600 mt-1">Kod: {{ product.unique_code }} | SKU: {{ product.sku|default:"—" }}</p>
+        <div class="bg-white rounded-lg shadow-sm p-3 sm:p-6 mb-4 sm:mb-6">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                <div class="mb-2 sm:mb-0">
+                    <h1 class="text-xl sm:text-3xl font-bold text-gray-900">Mahsulotni Tahrirlash</h1>
+                    <p class="text-xs sm:text-base text-gray-600 mt-1">Kod: {{ product.unique_code }} | SKU: {{ product.sku|default:"—" }}</p>
                 </div>
-                <div class="flex gap-3">
-                    <a href="{% url 'list_products' %}" class="btn-secondary">
-                        Ro'yxatga qaytish
+                <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    <a href="{% url 'list_products' %}" class="btn-secondary text-center whitespace-nowrap">
+                        Ro'yxat
                     </a>
-                    <a href="{% url 'admin:index' %}" class="btn-secondary">
+                    <a href="{% url 'admin:index' %}" class="btn-secondary text-center whitespace-nowrap">
                         Admin Panel
                     </a>
                 </div>
@@ -93,9 +99,9 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Texnik xususiyatlar</label>
                         <div id="specs-uz" class="space-y-2">
                             <div class="flex gap-2 spec-row">
-                                <input type="text" placeholder="Kalit (masalan: Quvvat)" class="flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="uz" data-type="key">
-                                <input type="text" placeholder="Qiymat (masalan: 1500W)" class="flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="uz" data-type="value">
-                                <button type="button" onclick="removeSpec(this)" class="btn-danger hidden">×</button>
+                                <input type="text" placeholder="Kalit (masalan: Quvvat)" class="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="uz" data-type="key">
+                                <input type="text" placeholder="Qiymat (masalan: 1500W)" class="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="uz" data-type="value">
+                                <button type="button" onclick="removeSpec(this)" class="btn-danger shrink-0">×</button>
                             </div>
                         </div>
                         <button type="button" onclick="addSpec('uz')" class="btn-outline mt-2">+ Xususiyat qo'shish</button>
@@ -132,12 +138,12 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Specifications</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Technical Specifications</label>
                         <div id="specs-en" class="space-y-2">
                             <div class="flex gap-2 spec-row">
-                                <input type="text" placeholder="Key (e.g.: Power)" class="flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="en" data-type="key">
-                                <input type="text" placeholder="Value (e.g.: 1500W)" class="flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="en" data-type="value">
-                                <button type="button" onclick="removeSpec(this)" class="btn-danger hidden">×</button>
+                                <input type="text" placeholder="Key (e.g.: Power)" class="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="en" data-type="key">
+                                <input type="text" placeholder="Value (e.g.: 1500W)" class="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="en" data-type="value">
+                                <button type="button" onclick="removeSpec(this)" class="btn-danger shrink-0">×</button>
                             </div>
                         </div>
                         <button type="button" onclick="addSpec('en')" class="btn-outline mt-2">+ Add Specification</button>
@@ -177,9 +183,9 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Технические характеристики</label>
                         <div id="specs-ru" class="space-y-2">
                             <div class="flex gap-2 spec-row">
-                                <input type="text" placeholder="Ключ (например: Мощность)" class="flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="ru" data-type="key">
-                                <input type="text" placeholder="Значение (например: 1500W)" class="flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="ru" data-type="value">
-                                <button type="button" onclick="removeSpec(this)" class="btn-danger hidden">×</button>
+                                <input type="text" placeholder="Ключ (например: Мощность)" class="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="ru" data-type="key">
+                                <input type="text" placeholder="Значение (например: 1500W)" class="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="ru" data-type="value">
+                                <button type="button" onclick="removeSpec(this)" class="btn-danger shrink-0">×</button>
                             </div>
                         </div>
                         <button type="button" onclick="addSpec('ru')" class="btn-outline mt-2">+ Добавить характеристику</button>
@@ -293,9 +299,9 @@
             };
             
             newRow.innerHTML = `
-                <input type="text" placeholder="${placeholders[lang][0]}" class="flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="${lang}" data-type="key">
-                <input type="text" placeholder="${placeholders[lang][1]}" class="flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="${lang}" data-type="value">
-                <button type="button" onclick="removeSpec(this)" class="btn-danger">×</button>
+                <input type="text" placeholder="${placeholders[lang][0]}" class="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="${lang}" data-type="key">
+                <input type="text" placeholder="${placeholders[lang][1]}" class="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="${lang}" data-type="value">
+                <button type="button" onclick="removeSpec(this)" class="btn-danger shrink-0">×</button>
             `;
             
             container.appendChild(newRow);
@@ -318,9 +324,9 @@
             rows.forEach((row, index) => {
                 const deleteBtn = row.querySelector('button');
                 if (rows.length > 1) {
-                    deleteBtn.classList.remove('hidden');
+                    deleteBtn.style.display = 'block';
                 } else {
-                    deleteBtn.classList.add('hidden');
+                    deleteBtn.style.display = 'none';
                 }
             });
         }
