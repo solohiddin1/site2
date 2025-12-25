@@ -4,7 +4,7 @@ from .views import (CategoryViewSet, SubCategoryViewSet,
     CertificatesViewSet, CompanyViewSet, ProductBySubCategoryView,
     ProductImageView, CategoriesDetailView, PartnersView, NewsDetailView,
     CityViewSet, ServiceLocationViewSet, ServiceCenterDescriptionViewSet, ProductViewSet, ProductDetailView, ProductListView,
-    BannerView, ConnectWithUsView, add_product_view, list_products_view, edit_product_view)
+    BannerView, ConnectWithUsView, add_product_view, list_products_view, edit_product_view, delete_product_image_view)
 
 router = DefaultRouter()
 # router.register(r'languages', LanguageViewSet)
@@ -31,6 +31,7 @@ urlpatterns = [
     path('admin/products/', list_products_view, name='list_products'),
     path('admin/add-product/', add_product_view, name='add_product'),
     path('admin/edit-product/<int:product_id>/', edit_product_view, name='edit_product'),
+    path('admin/delete-image/<int:image_id>/', delete_product_image_view, name='delete_product_image'),
     # Products by subcategory (slug)
     path('subcategories/<path:slug>/products/', ProductBySubCategoryView.as_view(), name='subcategory-products'),
 

@@ -29,6 +29,8 @@ from rest_framework.decorators import api_view
 from .utils import send_telegram_message
 import json
 import uuid
+from django.http import JsonResponse
+
 # Create your views here.
 
 # class CategoryTranslationSerializer(APIView)
@@ -605,6 +607,20 @@ def list_products_view(request):
     
     return render(request, 'list_products.html', context)
 
+
+@staff_member_required
+def delete_product_image_view(request, image_id):
+    """
+    Delete a product image - AJAX endpoint
+    """
+    if request.method == 'POST':
+        try:
+            image = get_object_or_404(ProductImage, id=image_id)
+            image.delete()
+            return JsonResponse({'success': True, 'message': 'Rasm o\'chirildi'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=400)
+    return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
 
 @staff_member_required
 def edit_product_view(request, product_id):
