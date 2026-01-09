@@ -218,12 +218,23 @@ class ProductListView(generics.ListAPIView):
     - query param `subcategory` (numeric id)
     - query param `category_slug` + `lang` (deprecated, but kept for backward compatibility)
     - query param `category` (deprecated, but kept for backward compatibility)
+    - query param `search` (search in product name, description, SKU)
     """
     serializer_class = ProductSerializer
 
     def get_queryset(self):
         queryset = Product.objects.all()
         lang = self.request.query_params.get('lang', 'uz')
+        
+        # Search functionality
+        search_query = self.request.query_params.get('search', '').strip()
+        if search_query:
+            queryset = queryset.language(lang).filter(
+                Q(translations__name__icontains=search_query) |
+                Q(translations__description__icontains=search_query) |
+                Q(sku__icontains=search_query)
+            ).distinct()
+            return queryset
         
         # New parameter names (recommended)
         subcategory_id = self.request.query_params.get('subcategory')
@@ -246,7 +257,7 @@ class ProductListView(generics.ListAPIView):
         elif id_param:
             queryset = queryset.filter(subcategory_id=id_param)
 
-        return queryset
+        return queryset.language(lang)
     
 # class ProductView(APIView):
 #     def get(self, request, pk):
