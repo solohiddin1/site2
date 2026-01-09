@@ -6,7 +6,9 @@ from .models import (Product, ProductImage, Category,
                      Partners, ServiceCenterDescription, ServiceLocation, 
                      City, Banner, ProductSpecs, SubCategory,
                      ProductPackageContentImages,
-                     ProductLongDesc, ProductUsage)
+                     ProductLongDesc, ProductUsage,
+                     Connection
+                     )
 
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
@@ -189,6 +191,12 @@ class ProductImageAdmin(admin.ModelAdmin):
     image_preview.allow_tags = True
     image_preview.short_description = 'Preview'
 
+
+@admin.register(Connection)
+class ConnectionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'phone_number')
+    search_fields = ('name', 'phone_number', 'message')
+    readonly_fields = ('created_at', 'updated_at')
 
 # @admin.register(Certificates)
 # class CertificatesAdmin(admin.ModelAdmin):

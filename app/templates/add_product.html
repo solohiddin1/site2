@@ -103,8 +103,9 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Paket tarkibi rasmi</label>
-                        <input type="file" name="package_image_uz" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Paket tarkibi rasmlari</label>
+                        <input type="file" name="package_images_uz" accept="image/*" multiple onchange="previewPackageImages(event, 'uz')" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <div id="package-preview-uz" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4"></div>
                     </div>
                 </div>
 
@@ -145,8 +146,9 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Package Content Image</label>
-                        <input type="file" name="package_image_en" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Package Content Images</label>
+                        <input type="file" name="package_images_en" accept="image/*" multiple onchange="previewPackageImages(event, 'en')" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <div id="package-preview-en" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4"></div>
                     </div>
                 </div>
 
@@ -187,8 +189,9 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Изображение содержимого упаковки</label>
-                        <input type="file" name="package_image_ru" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Изображения содержимого упаковки</label>
+                        <input type="file" name="package_images_ru" accept="image/*" multiple onchange="previewPackageImages(event, 'ru')" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <div id="package-preview-ru" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4"></div>
                     </div>
                 </div>
             </div>
@@ -320,6 +323,56 @@
                     subcategorySelect.appendChild(option);
                 });
             }
+        }
+
+        // Preview package images
+        let selectedPackageFiles = { uz: [], en: [], ru: [] };
+        function previewPackageImages(event, lang) {
+            const newFiles = Array.from(event.target.files);
+            selectedPackageFiles[lang] = [...selectedPackageFiles[lang], ...newFiles];
+            
+            const previewContainer = document.getElementById(`package-preview-${lang}`);
+            previewContainer.innerHTML = '';
+            
+            selectedPackageFiles[lang].forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'image-preview relative';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" class="w-full h-32 object-cover rounded-lg">
+                        <button type="button" onclick="removePackageImage(${index}, '${lang}')" class="delete-btn btn-danger absolute top-2 right-2">×</button>
+                    `;
+                    previewContainer.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Remove package image from preview
+        function removePackageImage(index, lang) {
+            selectedPackageFiles[lang].splice(index, 1);
+            const dataTransfer = new DataTransfer();
+            selectedPackageFiles[lang].forEach(file => dataTransfer.items.add(file));
+            document.querySelector(`input[name="package_images_${lang}"]`).files = dataTransfer.files;
+            
+            // Re-render preview
+            const previewContainer = document.getElementById(`package-preview-${lang}`);
+            previewContainer.innerHTML = '';
+            
+            selectedPackageFiles[lang].forEach((file, idx) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'image-preview relative';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" class="w-full h-32 object-cover rounded-lg">
+                        <button type="button" onclick="removePackageImage(${idx}, '${lang}')" class="delete-btn btn-danger absolute top-2 right-2">×</button>
+                    `;
+                    previewContainer.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
         }
 
         // Preview images

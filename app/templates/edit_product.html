@@ -108,8 +108,31 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Paket tarkibi rasmi</label>
-                        <input type="file" name="package_image_uz" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Paket tarkibi rasmlari</label>
+                        
+                        <!-- Existing package images -->
+                        {% if product.package_content_images.all %}
+                            <div class="mb-4">
+                                <p class="text-sm text-gray-600 mb-2">Mavjud paket rasmlari:</p>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="existing-package-images-uz">
+                                    {% for pkg_img in product.package_content_images.all %}
+                                        <div class="relative group" id="package-{{ pkg_img.id }}">
+                                            <img src="{{ pkg_img.image.url }}" alt="Package image" class="w-full h-32 object-cover rounded-lg">
+                                            <button type="button" onclick="deletePackageImage({{ pkg_img.id }})" class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                                ×
+                                            </button>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Add new package images -->
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-2">Yangi paket rasmlari qo'shish:</label>
+                            <input type="file" name="package_images_uz" accept="image/*" multiple onchange="previewPackageImages(event, 'uz')" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <div id="package-preview-uz" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -150,8 +173,31 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Package Content Image</label>
-                        <input type="file" name="package_image_en" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Package Content Images</label>
+                        
+                        <!-- Existing package images -->
+                        {% if product.package_content_images.all %}
+                            <div class="mb-4">
+                                <p class="text-sm text-gray-600 mb-2">Existing package images:</p>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="existing-package-images-en">
+                                    {% for pkg_img in product.package_content_images.all %}
+                                        <div class="relative group" id="package-en-{{ pkg_img.id }}">
+                                            <img src="{{ pkg_img.image.url }}" alt="Package image" class="w-full h-32 object-cover rounded-lg">
+                                            <button type="button" onclick="deletePackageImage({{ pkg_img.id }})" class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                                ×
+                                            </button>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Add new package images -->
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-2">Add new package images:</label>
+                            <input type="file" name="package_images_en" accept="image/*" multiple onchange="previewPackageImages(event, 'en')" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <div id="package-preview-en" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -192,8 +238,31 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Изображение содержимого упаковки</label>
-                        <input type="file" name="package_image_ru" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Изображения содержимого упаковки</label>
+                        
+                        <!-- Existing package images -->
+                        {% if product.package_content_images.all %}
+                            <div class="mb-4">
+                                <p class="text-sm text-gray-600 mb-2">Существующие изображения упаковки:</p>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="existing-package-images-ru">
+                                    {% for pkg_img in product.package_content_images.all %}
+                                        <div class="relative group" id="package-ru-{{ pkg_img.id }}">
+                                            <img src="{{ pkg_img.image.url }}" alt="Package image" class="w-full h-32 object-cover rounded-lg">
+                                            <button type="button" onclick="deletePackageImage({{ pkg_img.id }})" class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                                ×
+                                            </button>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Add new package images -->
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-2">Добавить новые изображения упаковки:</label>
+                            <input type="file" name="package_images_ru" accept="image/*" multiple onchange="previewPackageImages(event, 'ru')" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <div id="package-preview-ru" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -313,6 +382,88 @@
             })
             .catch(error => {
                 alert('Xatolik yuz berdi: ' + error);
+            });
+        }
+
+        // Delete package image
+        function deletePackageImage(packageId) {
+            if (!confirm('Ushbu paket rasmini o\'chirishni xohlaysizmi?')) {
+                return;
+            }
+
+            fetch(`/api/admin/delete-package-image/${packageId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove from all language tabs
+                    ['uz', 'en', 'ru'].forEach(lang => {
+                        const elem = document.getElementById(`package-${lang ? lang + '-' : ''}${packageId}`);
+                        if (elem) elem.remove();
+                    });
+                    const elem2 = document.getElementById(`package-${packageId}`);
+                    if (elem2) elem2.remove();
+                } else {
+                    alert('Xatolik: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Xatolik yuz berdi: ' + error);
+            });
+        }
+
+        // Preview package images
+        let selectedPackageFiles = { uz: [], en: [], ru: [] };
+        function previewPackageImages(event, lang) {
+            const newFiles = Array.from(event.target.files);
+            selectedPackageFiles[lang] = [...selectedPackageFiles[lang], ...newFiles];
+            
+            const previewContainer = document.getElementById(`package-preview-${lang}`);
+            previewContainer.innerHTML = '';
+            
+            selectedPackageFiles[lang].forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'image-preview relative';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" class="w-full h-32 object-cover rounded-lg">
+                        <button type="button" onclick="removePackageImage(${index}, '${lang}')" class="delete-btn btn-danger absolute top-2 right-2">×</button>
+                    `;
+                    previewContainer.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Remove package image from preview
+        function removePackageImage(index, lang) {
+            selectedPackageFiles[lang].splice(index, 1);
+            const dataTransfer = new DataTransfer();
+            selectedPackageFiles[lang].forEach(file => dataTransfer.items.add(file));
+            document.querySelector(`input[name="package_images_${lang}"]`).files = dataTransfer.files;
+            
+            // Re-render preview
+            const previewContainer = document.getElementById(`package-preview-${lang}`);
+            previewContainer.innerHTML = '';
+            
+            selectedPackageFiles[lang].forEach((file, idx) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'image-preview relative';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" class="w-full h-32 object-cover rounded-lg">
+                        <button type="button" onclick="removePackageImage(${idx}, '${lang}')" class="delete-btn btn-danger absolute top-2 right-2">×</button>
+                    `;
+                    previewContainer.appendChild(div);
+                };
+                reader.readAsDataURL(file);
             });
         }
 

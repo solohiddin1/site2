@@ -11,15 +11,22 @@ from parler_rest.serializers import TranslatableModelSerializer, TranslatedField
 
 
 class ProductPackageContentImagesSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField()
+    
     class Meta:
         model = ProductPackageContentImages
-        fields = ['id', 'product_package_content', 'image']
+        fields = ['id', 'image']
 
-class ProductPackageContentSerializer(serializers.ModelSerializer):
-    images = ProductPackageContentImagesSerializer(many=True, read_only=True)
-    class Meta:
-        model = ProductPackageContentImages
-        fields = ['id', 'product_package_content', 'images']
+# class ProductPackageContentSerializer(serializers.ModelSerializer):
+#     images = serializers.SerializerMethodField()
+#     # images = ProductPackageContentImagesSerializer(many=True, read_only=True)
+#     class Meta:
+#         model = ProductPackageContentImages
+#         fields = ['id', 'images']
+
+#     def get_images(self, obj):
+#         qs = obj.image
+#         return ProductPackageContentImagesSerializer(qs, many=True, context=self.context).data
 
 class ProductLongDescSerializer(TranslatableModelSerializer):
     translations = TranslatedFieldsField(shared_model=ProductLongDesc)
@@ -95,7 +102,8 @@ class ProductUsageSerializer(TranslatableModelSerializer):
 class ProductSerializer(TranslatableModelSerializer):
     # related_products = ProductSerializer(many=True, read_only=True, source='get_related_products')
     related_products = serializers.SerializerMethodField()
-    package_content = ProductPackageContentSerializer(many=True, read_only=True)
+    package_content = serializers.SerializerMethodField()
+    # package_content = ProductPackageContentSerializer(many=True, read_only=True)
     long_desc = ProductLongDescSerializer(many=True, read_only=True)
     translations = TranslatedFieldsField(shared_model=Product)
     specs = ProductSpecsSerializer(many=True, read_only=True)
@@ -105,14 +113,18 @@ class ProductSerializer(TranslatableModelSerializer):
     
     class Meta:
         model = Product
-        fields = ['id', 'translations', 'sku', 'warranty_months', 'images', 
-        'specs', 'usage', 'subcategory', 'related_products', 
-        'package_content', 'long_desc']
+        fields = ['id', 'translations', 'sku', 'warranty_months', 'package_content',
+        'images', 'specs', 'usage', 'subcategory', 
+        'related_products', 'long_desc']
 
     def get_related_products(self, obj):
         qs = Product.objects.filter(subcategory=obj.subcategory).exclude(id=obj.id)[:4]
         return RelatedProductSerializer(qs, many=True, context=self.context).data
-        
+    
+    def get_package_content(self, obj):
+        qs = obj.package_content_images.all()
+        return ProductPackageContentImagesSerializer(qs, many=True, context=self.context).data
+    
         # related_products = obj.get_related_products()
         # serializer = ProductSerializer(related_products, many=True, context=self.context)
         # return serializer.data

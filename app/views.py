@@ -27,6 +27,7 @@ from rest_framework.response import Response
 from rest_framework import generics 
 from rest_framework.decorators import api_view
 from .utils import send_telegram_message
+from django.utils.text import slugify
 import json
 import uuid
 from django.http import JsonResponse
@@ -141,7 +142,7 @@ class ProductDetailView(generics.RetrieveAPIView):
             lang = self.request.query_params.get("lang", "uz")
             return (
                 Product.objects.translated(lang)
-                .prefetch_related("specs", "images")
+                .prefetch_related("specs", "images", "package_content_images", "long_desc", "usage")
                 .select_related("subcategory")
             )
 
@@ -296,7 +297,14 @@ class ConnectWithUsView(APIView):
             phone_number = request.data.get('phone_number'),
             message = request.data.get('message'),
         )
-        send_telegram_message(f"Name: {request.data.get('name')}\nPhone: {request.data.get('phone_number')}\nMessage: {request.data.get('message')}")
+        name = request.data.get('name')
+        phone_number = request.data.get('phone_number')
+        message = request.data.get('message')
+        send_telegram_message(name=name,
+                              phone_number=phone_number,
+                              message=message
+                              )
+        # send_telegram_message(f"Name: {request.data.get('name')}\nPhone: {request.data.get('phone_number')}\nMessage: {request.data.get('message')}")
         return Response({"success": True}, status=200)
 
 
@@ -394,14 +402,16 @@ def create_product(request):
                 product_usage.usage = text
             product_usage.save()
 
-        # Handle package images
+        # Handle package images - create separate objects for each uploaded file
         for lang in ['uz', 'en', 'ru']:
-            package_image_key = f'package_image_{lang}'
-            if package_image_key in request.FILES:
-                package_img = ProductPackageContentImages(product=product)
-                package_img.set_current_language(lang)
-                package_img.image = request.FILES[package_image_key]
-                package_img.save()
+            package_images_key = f'package_images_{lang}'
+            if package_images_key in request.FILES:
+                files_list = request.FILES.getlist(package_images_key)
+                for img_file in files_list:
+                    package_img = ProductPackageContentImages(product=product)
+                    # Don't use set_current_language, just save the image directly
+                    package_img.image = img_file
+                    package_img.save()
 
         # Return success response with product data
         return Response({
@@ -453,12 +463,16 @@ def add_product_view(request):
                 unique_code=str(uuid.uuid4())[:8].upper()
             )
 
-            # Save with translations
+            # Save with translations and generate slugs for each language
             for lang in ['uz', 'en', 'ru']:
                 product.set_current_language(lang)
                 product.name = translations_data[lang]['name']
                 product.description = translations_data[lang]['description']
-                product.slug = None  # Will auto-generate
+                # Generate slug for each language based on the translated name
+                if translations_data[lang]['name']:
+                    product.slug = slugify(f"{translations_data[lang]['name']}-{product.unique_code}", allow_unicode=True)
+                else:
+                    product.slug = None
             
             product.save()
 
@@ -512,14 +526,16 @@ def add_product_view(request):
                     product_usage.usage = text
                 product_usage.save()
 
-            # Handle package images
+            # Handle package images - create separate objects for each uploaded file
             for lang in ['uz', 'en', 'ru']:
-                package_image_key = f'package_image_{lang}'
-                if package_image_key in request.FILES:
-                    package_img = ProductPackageContentImages(product=product)
-                    package_img.set_current_language(lang)
-                    package_img.image = request.FILES[package_image_key]
-                    package_img.save()
+                package_images_key = f'package_images_{lang}'
+                if package_images_key in request.FILES:
+                    files_list = request.FILES.getlist(package_images_key)
+                    for img_file in files_list:
+                        package_img = ProductPackageContentImages(product=product)
+                        # Don't use set_current_language, just save the image directly
+                        package_img.image = img_file
+                        package_img.save()
 
             messages.success(request, f'Mahsulot muvaffaqiyatli qo\'shildi! (Kod: {product.unique_code})')
             return redirect('admin:app_product_change', product.id)
@@ -623,6 +639,20 @@ def delete_product_image_view(request, image_id):
     return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
 
 @staff_member_required
+def delete_package_image_view(request, package_id):
+    """
+    Delete a package content image - AJAX endpoint
+    """
+    if request.method == 'POST':
+        try:
+            package_img = get_object_or_404(ProductPackageContentImages, id=package_id)
+            package_img.delete()
+            return JsonResponse({'success': True, 'message': 'Paket rasmi o\'chirildi'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=400)
+    return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
+
+@staff_member_required
 def edit_product_view(request, product_id):
     """
     Edit existing product - only accessible by admin staff
@@ -631,11 +661,15 @@ def edit_product_view(request, product_id):
     
     if request.method == 'POST':
         try:
-            # Update translations
+            # Update translations and regenerate slugs
             for lang in ['uz', 'en', 'ru']:
                 product.set_current_language(lang)
-                product.name = request.POST.get(f'name_{lang}', '')
+                name = request.POST.get(f'name_{lang}', '')
+                product.name = name
                 product.description = request.POST.get(f'description_{lang}', '')
+                # Regenerate slug for each language based on updated name
+                if name:
+                    product.slug = slugify(f"{name}-{product.unique_code}", allow_unicode=True)
             
             # Update basic fields
             product.sku = request.POST.get('sku', '')
@@ -686,14 +720,16 @@ def edit_product_view(request, product_id):
                     product_usage.usage = usage
                     product_usage.save()
 
-            # Handle package images
+            # Handle package images - create separate objects for each uploaded file
             for lang in ['uz', 'en', 'ru']:
-                package_image_key = f'package_image_{lang}'
-                if package_image_key in request.FILES:
-                    package_img, created = ProductPackageContentImages.objects.get_or_create(product=product)
-                    package_img.set_current_language(lang)
-                    package_img.image = request.FILES[package_image_key]
-                    package_img.save()
+                package_images_key = f'package_images_{lang}'
+                if package_images_key in request.FILES:
+                    files_list = request.FILES.getlist(package_images_key)
+                    for img_file in files_list:
+                        package_img = ProductPackageContentImages(product=product)
+                        # Don't use set_current_language, just save the image directly
+                        package_img.image = img_file
+                        package_img.save()
 
             messages.success(request, 'Mahsulot muvaffaqiyatli yangilandi!')
             return redirect('edit_product', product_id=product.id)
