@@ -163,6 +163,9 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
+DATA_UPLOAD_MAX_MEMORY_SIZE = 30 * 1024 * 1024  # 30MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 30 * 1024 * 1024
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
