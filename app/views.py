@@ -25,7 +25,8 @@ from .serilializers import (
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import generics 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from .utils import send_telegram_message
 from django.utils.text import slugify
 from django.views.decorators.csrf import csrf_exempt
@@ -292,8 +293,9 @@ class AboutUsView(generics.ListAPIView):
         return Response(status=200)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class ConnectWithUsView(APIView):
+    permission_classes = [AllowAny]
+    
     def post(self,request):
         Connection.objects.create(
             name = request.data.get('name'),
