@@ -134,32 +134,28 @@ class ProductImageViewSet(viewsets.ModelViewSet):
     queryset = ProductImage.objects.all()
     serializer_class = ProductImageSerializer
 
-
 class ProductDetailView(generics.RetrieveAPIView):
     serializer_class = ProductSerializer
     lookup_field = 'translations__slug'
     lookup_url_kwarg = 'slug'
 
-    
     def get_queryset(self):
-            lang = self.request.query_params.get("lang", "uz")
-            return (
-                Product.objects.translated(lang)
-                .prefetch_related("specs", "images", "package_content_images", "long_desc", "usage")
-                .select_related("subcategory")
-            )
-    
-    def get_object(self):
         lang = self.request.query_params.get("lang", "uz")
-        return Product.objects.translated(lang, fallback=True)
+        return (
+            Product.objects.language(lang)
+            .prefetch_related("specs", "images", "package_content_images", "long_desc", "usage")
+            .select_related("subcategory")
+        )
 
-    def get_related_products(self):
-        product = self.get_object()
-        return Product.objects.translated(lang, fallback=True).filter(subcategory=product.subcategory).exclude(id=product.id)[:5]
-    
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        context['related_products'] = self.get_related_products()
+        lang = self.request.query_params.get("lang", "uz")
+        product = self.get_object()
+        context['related_products'] = (
+            Product.objects.language(lang)
+            .filter(subcategory=product.subcategory)
+            .exclude(id=product.id)[:5]
+        )
         return context
 
 # class ProductDetailView(generics.RetrieveAPIView):
