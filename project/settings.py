@@ -149,13 +149,23 @@ MEDIA_ROOT = BASE_DIR / 'media'
 CKEDITOR_UPLOAD_PATH = "uploads/"
 
 CORS_ALLOW_ALL_ORIGINS = True  # or use CORS_ALLOWED_ORIGINS = ['http://localhost:5173']
+# CORS_ALLOWED_ORIGINS = [
+#     'http://localhost:5173',
+#     'http://127.0.0.1:5173',
+#     'https://7f0a7e0d2031.ngrok-free.app',
+#     'http://209.38.235.118',
+#     'https://209.38.235.118',
+# ]
+
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
-    'https://7f0a7e0d2031.ngrok-free.app',
-    'http://209.38.235.118',
-    'https://209.38.235.118',
 ]
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
+
 BACKEND_URL = 'http://localhost:8001'
 CORS_ALLOW_CREDENTIALS = True
 
@@ -171,8 +181,8 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = 30 * 1024 * 1024  # 30MB
-FILE_UPLOAD_MAX_MEMORY_SIZE = 30 * 1024 * 1024
+DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
