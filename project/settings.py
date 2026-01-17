@@ -25,9 +25,11 @@ from config.config import settings
 SECRET_KEY = settings.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = settings.DEBUG
+DEBUG = True
+# DEBUG = settings.DEBUG
 
-ALLOWED_HOSTS = settings.ALLOWED_HOSTS
+ALLOWED_HOSTS = ["*"]
+# ALLOWED_HOSTS = settings.ALLOWED_HOSTS
 
 
 # Application definition
