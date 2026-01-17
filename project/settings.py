@@ -148,19 +148,17 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 CKEDITOR_UPLOAD_PATH = "uploads/"
 
-CORS_ALLOW_ALL_ORIGINS = True  # or use CORS_ALLOWED_ORIGINS = ['http://localhost:5173']
-# CORS_ALLOWED_ORIGINS = [
-#     'http://localhost:5173',
-#     'http://127.0.0.1:5173',
-#     'https://7f0a7e0d2031.ngrok-free.app',
-#     'http://209.38.235.118',
-#     'https://209.38.235.118',
-# ]
-
+# CORS_ALLOW_ALL_ORIGINS = True  # or use CORS_ALLOWED_ORIGINS = ['http://localhost:5173']
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
+    'https://7f0a7e0d2031.ngrok-free.app',
+    'http://209.38.235.118',
+    'https://209.38.235.118',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
 ]
+
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
