@@ -137,7 +137,14 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'uz'  # Default language
+
+# Available languages for Django (matches Parler languages)
+LANGUAGES = [
+    ('uz', 'Uzbek'),
+    ('en', 'English'),
+    ('ru', 'Russian'),
+]
 
 TIME_ZONE = 'Asia/Tashkent'
 
@@ -195,6 +202,36 @@ STATIC_ROOT = BASE_DIR / 'static'
 STATICFILES_DIRS = [
     BASE_DIR / 'site2/static'
 ]
+
+JAZZMIN_SETTINGS = {
+    # title of the window (Will default to current_admin_site.site_title if absent or None)
+    "site_title": "Gidrox Admin",
+
+    # Title on the login screen (19 chars max) (defaults to current_admin_site.site_header if absent or None)
+    "site_header": "Gidrox Admin",
+
+    # Title on the brand (19 chars max) (defaults to current_admin_site.site_header if absent or None)
+    "site_brand": "Gidrox ",
+    # "site_logo": "jazzmin/img/nonborlogo.png",
+    "order_with_respect_to": ["product", "business", "user"],
+
+    "user_avatar": "image",
+
+    "language_chooser": True,
+    "show_ui_builder": True,
+
+    "custom_links": {
+        "product.Product": [
+            {
+                "name": "Checking Products",
+                "url": "admin:product_product_changelist",
+                "icon": "fas fa-box",
+                "permissions": ["product.view_product"],
+            }
+        ],
+    }
+}
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

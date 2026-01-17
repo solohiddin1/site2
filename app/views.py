@@ -141,10 +141,15 @@ class ProductDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         lang = self.request.query_params.get("lang", "uz")
+        slug = self.kwargs.get('slug')
+        
+        # Filter by both slug AND language_code to avoid MultipleObjectsReturned error
         return (
             Product.objects.language(lang)
+            .filter(translations__slug=slug, translations__language_code=lang)
             .prefetch_related("specs", "images", "package_content_images", "long_desc", "usage")
             .select_related("subcategory")
+            .distinct()
         )
 
     def get_serializer_context(self):

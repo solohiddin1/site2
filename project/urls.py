@@ -27,7 +27,7 @@ schema = get_schema_view(
         title="Epa",
         default_version="v1",
         description="API documentation for the Epa",
-        contact=openapi.Contact(email="dev@example.com"),
+        contact=openapi.Contact(email="sirojiddinovsolohiddin961@gmail.com"),
         license=openapi.License(name="BSD License"),
     ),
     public=True,
@@ -41,6 +41,7 @@ urlpatterns = [
     path('api/', include('app.urls')),
     path('swagger/', schema.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path("ckeditor/", include("ckeditor_uploader.urls")),
+    path('i18n/', include('django.conf.urls.i18n')),  # Required for Jazzmin language chooser
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
