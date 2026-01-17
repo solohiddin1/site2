@@ -1,0 +1,818 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mahsulot qo'shish - Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            overflow-x: hidden;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-button {
+            cursor: pointer;
+            padding: 0.75rem 1.5rem;
+            border-bottom: 2px solid transparent;
+            font-size: 0.875rem;
+        }
+
+        .tab-button.active {
+            border-bottom-color: #E31E24;
+            color: #E31E24;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background-color: #E31E24;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            background-color: #c01920;
+        }
+
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+        }
+
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+
+        .btn-outline {
+            border: 1px solid #d1d5db;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            background: white;
+        }
+
+        .btn-outline:hover {
+            background-color: #f3f4f6;
+        }
+
+        .btn-danger {
+            background-color: #dc2626;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+        }
+
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+
+        .image-preview {
+            position: relative;
+        }
+
+        .image-preview:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .delete-btn {
+            opacity: 0;
+            transition: opacity 0.2s;
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .tab-button {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.75rem;
+            }
+
+            .btn-primary,
+            .btn-secondary {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .delete-btn {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <div class="w-full max-w-6xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-sm p-3 sm:p-6 mb-4 sm:mb-6">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                <div class="mb-2 sm:mb-0">
+                    <h1 class="text-xl sm:text-3xl font-bold text-gray-900">Mahsulotni Tahrirlash</h1>
+                    <p class="text-xs sm:text-base text-gray-600 mt-1">Kod: {{ product.unique_code }} | SKU: {{
+                        product.sku|default:"—" }}</p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    <a href="{% url 'products:list_products' %}" class="btn-secondary text-center whitespace-nowrap">
+                        Ro'yxat
+                    </a>
+                    <a href="{% url 'admin:index' %}" class="btn-secondary text-center whitespace-nowrap">
+                        Admin Panel
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {% if messages %}
+        {% for message in messages %}
+        <div
+            class="bg-{{ message.tags }}-100 border border-{{ message.tags }}-400 text-{{ message.tags }}-700 px-4 py-3 rounded mb-4">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" id="productForm">
+            {% csrf_token %}
+
+            <!-- Language Tabs -->
+            <div class="bg-white rounded-lg shadow-sm mb-6">
+                <div class="border-b border-gray-200">
+                    <div class="flex">
+                        <button type="button" class="tab-button active" onclick="switchTab('uz')">O'zbekcha</button>
+                        <button type="button" class="tab-button" onclick="switchTab('en')">English</button>
+                        <button type="button" class="tab-button" onclick="switchTab('ru')">Русский</button>
+                    </div>
+                </div>
+
+                <!-- Uzbek Tab -->
+                <div id="tab-uz" class="tab-content active p-6">
+                    <h3 class="text-xl font-semibold mb-4">O'zbek tilida ma'lumotlar</h3>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Mahsulot nomi *</label>
+                        <input type="text" name="name_uz" required value="{{ product_uz.name }}"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Qisqa tavsif</label>
+                        <textarea name="description_uz" rows="3"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">{{ product_uz.description }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">To'liq tavsif</label>
+                        <textarea name="long_desc_uz" rows="5"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">{{ long_desc.uz }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Foydalanish</label>
+                        <textarea name="usage_uz" rows="3"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">{{ usage.uz }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Texnik xususiyatlar</label>
+                        <div id="specs-uz" class="space-y-2">
+                            <div class="flex gap-2 spec-row">
+                                <input type="text" placeholder="Kalit (masalan: Quvvat)"
+                                    class="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="uz"
+                                    data-type="key">
+                                <input type="text" placeholder="Qiymat (masalan: 1500W)"
+                                    class="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="uz"
+                                    data-type="value">
+                                <button type="button" onclick="removeSpec(this)" class="btn-danger shrink-0">×</button>
+                            </div>
+                        </div>
+                        <button type="button" onclick="addSpec('uz')" class="btn-outline mt-2">+ Xususiyat
+                            qo'shish</button>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Paket tarkibi rasmlari</label>
+
+                        <!-- Existing package images -->
+                        {% if product.package_content_images.all %}
+                        <div class="mb-4">
+                            <p class="text-sm text-gray-600 mb-2">Mavjud paket rasmlari:</p>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="existing-package-images-uz">
+                                {% for pkg_img in product.package_content_images.all %}
+                                <div class="relative group" id="package-{{ pkg_img.id }}">
+                                    <img src="{{ pkg_img.image.url }}" alt="Package image"
+                                        class="w-full h-32 object-cover rounded-lg">
+                                    <button type="button" onclick="deletePackageImage({{ pkg_img.id }})"
+                                        class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                        ×
+                                    </button>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Add new package images -->
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-2">Yangi paket rasmlari qo'shish:</label>
+                            <input type="file" name="package_images_uz" accept="image/*" multiple
+                                onchange="previewPackageImages(event, 'uz')"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <div id="package-preview-uz" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- English Tab -->
+                <div id="tab-en" class="tab-content p-6">
+                    <h3 class="text-xl font-semibold mb-4">Information in English</h3>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Product Name *</label>
+                        <input type="text" name="name_en" required value="{{ product_en.name }}"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Short Description</label>
+                        <textarea name="description_en" rows="3"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">{{ product_en.description }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Full Description</label>
+                        <textarea name="long_desc_en" rows="5"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">{{ long_desc.en }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Usage</label>
+                        <textarea name="usage_en" rows="3"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">{{ usage.en }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Technical Specifications</label>
+                        <div id="specs-en" class="space-y-2">
+                            <div class="flex gap-2 spec-row">
+                                <input type="text" placeholder="Key (e.g.: Power)"
+                                    class="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="en"
+                                    data-type="key">
+                                <input type="text" placeholder="Value (e.g.: 1500W)"
+                                    class="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="en"
+                                    data-type="value">
+                                <button type="button" onclick="removeSpec(this)" class="btn-danger shrink-0">×</button>
+                            </div>
+                        </div>
+                        <button type="button" onclick="addSpec('en')" class="btn-outline mt-2">+ Add
+                            Specification</button>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Package Content Images</label>
+
+                        <!-- Existing package images -->
+                        {% if product.package_content_images.all %}
+                        <div class="mb-4">
+                            <p class="text-sm text-gray-600 mb-2">Existing package images:</p>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="existing-package-images-en">
+                                {% for pkg_img in product.package_content_images.all %}
+                                <div class="relative group" id="package-en-{{ pkg_img.id }}">
+                                    <img src="{{ pkg_img.image.url }}" alt="Package image"
+                                        class="w-full h-32 object-cover rounded-lg">
+                                    <button type="button" onclick="deletePackageImage({{ pkg_img.id }})"
+                                        class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                        ×
+                                    </button>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Add new package images -->
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-2">Add new package images:</label>
+                            <input type="file" name="package_images_en" accept="image/*" multiple
+                                onchange="previewPackageImages(event, 'en')"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <div id="package-preview-en" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Russian Tab -->
+                <div id="tab-ru" class="tab-content p-6">
+                    <h3 class="text-xl font-semibold mb-4">Информация на русском</h3>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Название продукта *</label>
+                        <input type="text" name="name_ru" required value="{{ product_ru.name }}"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Краткое описание</label>
+                        <textarea name="description_ru" rows="3"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">{{ product_ru.description }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Полное описание</label>
+                        <textarea name="long_desc_ru" rows="5"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">{{ long_desc.ru }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Использование</label>
+                        <textarea name="usage_ru" rows="3"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">{{ usage.ru }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Технические характеристики</label>
+                        <div id="specs-ru" class="space-y-2">
+                            <div class="flex gap-2 spec-row">
+                                <input type="text" placeholder="Ключ (например: Мощность)"
+                                    class="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="ru"
+                                    data-type="key">
+                                <input type="text" placeholder="Значение (например: 1500W)"
+                                    class="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="ru"
+                                    data-type="value">
+                                <button type="button" onclick="removeSpec(this)" class="btn-danger shrink-0">×</button>
+                            </div>
+                        </div>
+                        <button type="button" onclick="addSpec('ru')" class="btn-outline mt-2">+ Добавить
+                            характеристику</button>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Изображения содержимого
+                            упаковки</label>
+
+                        <!-- Existing package images -->
+                        {% if product.package_content_images.all %}
+                        <div class="mb-4">
+                            <p class="text-sm text-gray-600 mb-2">Существующие изображения упаковки:</p>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="existing-package-images-ru">
+                                {% for pkg_img in product.package_content_images.all %}
+                                <div class="relative group" id="package-ru-{{ pkg_img.id }}">
+                                    <img src="{{ pkg_img.image.url }}" alt="Package image"
+                                        class="w-full h-32 object-cover rounded-lg">
+                                    <button type="button" onclick="deletePackageImage({{ pkg_img.id }})"
+                                        class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                        ×
+                                    </button>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Add new package images -->
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-2">Добавить новые изображения упаковки:</label>
+                            <input type="file" name="package_images_ru" accept="image/*" multiple
+                                onchange="previewPackageImages(event, 'ru')"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <div id="package-preview-ru" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Common Fields -->
+            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-4">Umumiy ma'lumotlar</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">SKU (Artikul)</label>
+                        <input type="text" name="sku" value="{{ product.sku }}"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Kafolat (oylar)</label>
+                        <input type="number" name="warranty_months" value="{{ product.warranty_months }}"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Kategoriya *</label>
+                        <select name="category" id="category" required onchange="filterSubcategories()"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                            <option value="">Kategoriyani tanlang</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" 
+                            {% if category.id == product.subcategory.category_id %}selected{% endif %}>
+                                {{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Subkategoriya *</label>
+                        <select name="subcategory" id="subcategory" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                            <option value="">Subkategoriyani tanlang</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Mahsulot rasmlari</label>
+
+                    <!-- Existing images -->
+                    {% if product.images.all %}
+                    <div class="mb-4">
+                        <p class="text-sm text-gray-600 mb-2">Mavjud rasmlar:</p>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="existing-images">
+                            {% for image in product.images.all %}
+                            <div class="relative group" id="image-{{ image.id }}">
+                                <img src="{{ image.image.url }}" alt="{{ image.alt }}"
+                                    class="w-full h-32 object-cover rounded-lg">
+                                <span
+                                    class="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                                    #{{ image.ordering }}
+                                </span>
+                                <button type="button" onclick="deleteExistingImage({{ image.id }})"
+                                    class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                    ×
+                                </button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Add new images -->
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-2">Yangi rasmlar qo'shish:</label>
+                        <input type="file" name="images" accept="image/*" multiple onchange="previewImages(event)"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <div id="image-preview" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hidden input for specs JSON -->
+            <input type="hidden" name="specs" id="specs-json">
+
+            <!-- Submit Buttons -->
+            <div class="flex justify-end gap-4">
+                <a href="{% url 'admin:index' %}" class="btn-secondary">Bekor qilish</a>
+                <button type="submit" class="btn-primary">Saqlash</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Store subcategories data
+        const subcategoriesData = {{ subcategories_json| safe }};
+
+        // Delete existing image
+        function deleteExistingImage(imageId) {
+            if (!confirm('Ushbu rasmni o\'chirishni xohlaysizmi?')) {
+                return;
+            }
+
+            fetch(`/api/admin/delete-image/${imageId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove the image element from DOM
+                        const imageElement = document.getElementById(`image-${imageId}`);
+                        if (imageElement) {
+                            imageElement.remove();
+                        }
+
+                        // Check if any images left
+                        const container = document.getElementById('existing-images');
+                        if (container && container.children.length === 0) {
+                            container.parentElement.remove();
+                        }
+                    } else {
+                        alert('Xatolik: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Xatolik yuz berdi: ' + error);
+                });
+        }
+
+        // Delete package image
+        function deletePackageImage(packageId) {
+            if (!confirm('Ushbu paket rasmini o\'chirishni xohlaysizmi?')) {
+                return;
+            }
+
+            fetch(`/api/admin/delete-package-image/${packageId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove from all language tabs
+                        ['uz', 'en', 'ru'].forEach(lang => {
+                            const elem = document.getElementById(`package-${lang ? lang + '-' : ''}${packageId}`);
+                            if (elem) elem.remove();
+                        });
+                        const elem2 = document.getElementById(`package-${packageId}`);
+                        if (elem2) elem2.remove();
+                    } else {
+                        alert('Xatolik: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Xatolik yuz berdi: ' + error);
+                });
+        }
+
+        // Preview package images
+        let selectedPackageFiles = { uz: [], en: [], ru: [] };
+        function previewPackageImages(event, lang) {
+            const newFiles = Array.from(event.target.files);
+            selectedPackageFiles[lang] = [...selectedPackageFiles[lang], ...newFiles];
+
+            const previewContainer = document.getElementById(`package-preview-${lang}`);
+            previewContainer.innerHTML = '';
+
+            selectedPackageFiles[lang].forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const div = document.createElement('div');
+                    div.className = 'image-preview relative';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" class="w-full h-32 object-cover rounded-lg">
+                        <button type="button" onclick="removePackageImage(${index}, '${lang}')" class="delete-btn btn-danger absolute top-2 right-2">×</button>
+                    `;
+                    previewContainer.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Remove package image from preview
+        function removePackageImage(index, lang) {
+            selectedPackageFiles[lang].splice(index, 1);
+            const dataTransfer = new DataTransfer();
+            selectedPackageFiles[lang].forEach(file => dataTransfer.items.add(file));
+            document.querySelector(`input[name="package_images_${lang}"]`).files = dataTransfer.files;
+
+            // Re-render preview
+            const previewContainer = document.getElementById(`package-preview-${lang}`);
+            previewContainer.innerHTML = '';
+
+            selectedPackageFiles[lang].forEach((file, idx) => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const div = document.createElement('div');
+                    div.className = 'image-preview relative';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" class="w-full h-32 object-cover rounded-lg">
+                        <button type="button" onclick="removePackageImage(${idx}, '${lang}')" class="delete-btn btn-danger absolute top-2 right-2">×</button>
+                    `;
+                    previewContainer.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Tab switching
+        function switchTab(lang) {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById('tab-' + lang).classList.add('active');
+        }
+
+        // Add specification field
+        function addSpec(lang) {
+            const container = document.getElementById('specs-' + lang);
+            const newRow = document.createElement('div');
+            newRow.className = 'flex gap-2 spec-row';
+
+            const placeholders = {
+                'uz': ['Kalit (masalan: Quvvat)', 'Qiymat (masalan: 1500W)'],
+                'en': ['Key (e.g.: Power)', 'Value (e.g.: 1500W)'],
+                'ru': ['Ключ (например: Мощность)', 'Значение (например: 1500W)']
+            };
+
+            newRow.innerHTML = `
+                <input type="text" placeholder="${placeholders[lang][0]}" class="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="${lang}" data-type="key">
+                <input type="text" placeholder="${placeholders[lang][1]}" class="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-md" data-lang="${lang}" data-type="value">
+                <button type="button" onclick="removeSpec(this)" class="btn-danger shrink-0">×</button>
+            `;
+
+            container.appendChild(newRow);
+            updateDeleteButtons(lang);
+        }
+
+        // Remove specification field
+        function removeSpec(button) {
+            const row = button.closest('.spec-row');
+            const container = row.parentElement;
+            const lang = container.id.split('-')[1];
+            row.remove();
+            updateDeleteButtons(lang);
+        }
+
+        // Update delete button visibility
+        function updateDeleteButtons(lang) {
+            const container = document.getElementById('specs-' + lang);
+            const rows = container.querySelectorAll('.spec-row');
+            rows.forEach((row, index) => {
+                const deleteBtn = row.querySelector('button');
+                if (rows.length > 1) {
+                    deleteBtn.style.display = 'block';
+                } else {
+                    deleteBtn.style.display = 'none';
+                }
+            });
+        }
+
+        // Filter subcategories based on category
+        function filterSubcategories() {
+            const categoryId = document.getElementById('category').value;
+            const subcategorySelect = document.getElementById('subcategory');
+
+            subcategorySelect.innerHTML = '<option value="">Subkategoriyani tanlang</option>';
+
+            if (categoryId) {
+                const filtered = subcategoriesData.filter(sub => sub.category == categoryId);
+                filtered.forEach(sub => {
+                    const option = document.createElement('option');
+                    option.value = sub.id;
+                    option.textContent = sub.name;
+                    subcategorySelect.appendChild(option);
+                });
+            }
+        }
+
+        // Preview images
+        let selectedFiles = [];
+        function previewImages(event) {
+            // Add new files to existing selection instead of replacing
+            const newFiles = Array.from(event.target.files);
+            selectedFiles = [...selectedFiles, ...newFiles];
+
+            const previewContainer = document.getElementById('image-preview');
+            previewContainer.innerHTML = '';
+
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const div = document.createElement('div');
+                    div.className = 'image-preview relative';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" class="w-full h-32 object-cover rounded-lg">
+                        <button type="button" onclick="removeImage(${index})" class="delete-btn btn-danger absolute top-2 right-2">×</button>
+                    `;
+                    previewContainer.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Remove image from preview
+        function removeImage(index) {
+            selectedFiles.splice(index, 1);
+            const dataTransfer = new DataTransfer();
+            selectedFiles.forEach(file => dataTransfer.items.add(file));
+            document.querySelector('input[name="images"]').files = dataTransfer.files;
+
+            // Re-render preview
+            const previewContainer = document.getElementById('image-preview');
+            previewContainer.innerHTML = '';
+
+            selectedFiles.forEach((file, idx) => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const div = document.createElement('div');
+                    div.className = 'image-preview relative';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" class="w-full h-32 object-cover rounded-lg">
+                        <button type="button" onclick="removeImage(${idx})" class="delete-btn btn-danger absolute top-2 right-2">×</button>
+                    `;
+                    previewContainer.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Form submission - collect specs as JSON
+        document.getElementById('productForm').addEventListener('submit', function (e) {
+            // Validate required fields in all languages
+            const requiredFields = ['uz', 'en', 'ru'];
+            const missingLanguages = [];
+
+            requiredFields.forEach(lang => {
+                const name = document.querySelector(`input[name="name_${lang}"]`).value.trim();
+                if (!name) {
+                    missingLanguages.push(lang.toUpperCase());
+                }
+            });
+
+            if (missingLanguages.length > 0) {
+                e.preventDefault();
+                const langNames = { 'UZ': 'O\'zbekcha', 'EN': 'English', 'RU': 'Русский' };
+                const missingNames = missingLanguages.map(l => langNames[l]).join(', ');
+                alert(`⚠️ Mahsulot nomi barcha tillarda to'ldirilishi shart!\n\nTo'ldirilmagan tillar: ${missingNames}\n\nIltimos, barcha tillarda ma'lumot kiriting.`);
+
+                // Switch to first missing language tab
+                const firstMissing = missingLanguages[0].toLowerCase();
+                switchTab(firstMissing);
+                document.querySelector(`input[name="name_${firstMissing}"]`).focus();
+                return false;
+            }
+
+            const specs = { uz: {}, en: {}, ru: {} };
+
+            ['uz', 'en', 'ru'].forEach(lang => {
+                const container = document.getElementById('specs-' + lang);
+                const rows = container.querySelectorAll('.spec-row');
+
+                rows.forEach(row => {
+                    const keyInput = row.querySelector('input[data-type="key"]');
+                    const valueInput = row.querySelector('input[data-type="value"]');
+
+                    if (keyInput.value && valueInput.value) {
+                        specs[lang][keyInput.value] = valueInput.value;
+                    }
+                });
+            });
+
+            document.getElementById('specs-json').value = JSON.stringify(specs);
+        });
+
+        // Initialize existing data for edit mode
+        {% if is_edit %}
+        document.addEventListener('DOMContentLoaded', function () {
+            // Load existing specs
+            const existingSpecs = {{ specs| safe
+        }};
+
+        ['uz', 'en', 'ru'].forEach(lang => {
+            const container = document.getElementById('specs-' + lang);
+            container.innerHTML = ''; // Clear default row
+
+            const langSpecs = existingSpecs[lang] || {};
+            const specsArray = Object.entries(langSpecs);
+
+            if (specsArray.length === 0) {
+                // Add empty row if no specs
+                addSpec(lang);
+            } else {
+                // Add row for each spec
+                specsArray.forEach(([key, value]) => {
+                    addSpec(lang);
+                    const rows = container.querySelectorAll('.spec-row');
+                    const lastRow = rows[rows.length - 1];
+                    lastRow.querySelector('input[data-type="key"]').value = key;
+                    lastRow.querySelector('input[data-type="value"]').value = value;
+                });
+            }
+
+            updateDeleteButtons(lang);
+        });
+
+        // Filter and select subcategory
+        const categoryId = document.getElementById('category').value;
+        if (categoryId) {
+            filterSubcategories();
+            // Wait for options to populate
+            setTimeout(() => {
+                document.getElementById('subcategory').value = '{{ product.subcategory.id }}';
+            }, 100);
+        }
+        });
+        {% endif %}
+    </script>
+</body>
+
+</html>
