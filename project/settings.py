@@ -168,7 +168,7 @@ BACKEND_URL = 'http://localhost:8001'
 CORS_ALLOW_CREDENTIALS = True
 
 # If you want to allow all headers, use the following:
-# CORS_ALLOW_ALL_HEADERS = True
+CORS_ALLOW_ALL_HEADERS = True
 # Or keep the explicit list:
 CORS_ALLOW_HEADERS = [
     'accept',
