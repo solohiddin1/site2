@@ -148,18 +148,19 @@ class ProductDetailView(generics.RetrieveAPIView):
                 .prefetch_related("specs", "images", "package_content_images", "long_desc", "usage")
                 .select_related("subcategory")
             )
+    
+    def get_object(self):
+        lang = self.request.query_params.get("lang", "uz")
+        return Product.objects.translated(lang, fallback=True)
 
     def get_related_products(self):
         product = self.get_object()
-        return Product.objects.filter(subcategory=product.subcategory).exclude(id=product.id)[:5]
-        
+        return Product.objects.translated(lang, fallback=True).filter(subcategory=product.subcategory).exclude(id=product.id)[:5]
+    
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context['related_products'] = self.get_related_products()
         return context
-
-    
-        # return Product.objects.translated(lang, fallback=True)
 
 # class ProductDetailView(generics.RetrieveAPIView):
 #     serializer_class = ProductSerializer
