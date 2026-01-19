@@ -1,4 +1,6 @@
 import uuid
+import asyncio
+import inspect
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
@@ -81,11 +83,11 @@ class Category(BaseModel, TranslatableModel):
                 if self.translations.filter(language_code=lang).exists():
                     continue
 
-                translated_name = translator.translate(
-                    source_context.name,
-                    src=source_lang,
-                    dest=lang
-                ).text
+                res = translator.translate(source_context.name, src=source_lang, dest=lang)
+                if inspect.isawaitable(res):
+                    translated_name = asyncio.run(res).text
+                else:
+                    translated_name = res.text
                 
                 slug_val = slugify(f"{translated_name}-{uc}", allow_unicode=True)
 
@@ -159,11 +161,11 @@ class SubCategory(TranslatableModel, BaseModel):
                 if self.translations.filter(language_code=lang).exists():
                     continue
 
-                translated_name = translator.translate(
-                    source_context.name,
-                    src=source_lang,
-                    dest=lang
-                ).text
+                res = translator.translate(source_context.name, src=source_lang, dest=lang)
+                if inspect.isawaitable(res):
+                    translated_name = asyncio.run(res).text
+                else:
+                    translated_name = res.text
                 
                 slug_val = slugify(f"{translated_name}-{uc}", allow_unicode=True)
 

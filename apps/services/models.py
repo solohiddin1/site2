@@ -1,3 +1,5 @@
+import asyncio
+import inspect
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
@@ -70,18 +72,16 @@ class ServiceCenterDescription(BaseModel, TranslatableModel):
                 if self.translations.filter(language_code=lang).exists():
                     continue
 
-                to_translate_title = base_translation.title or ""
-                to_translate_description = base_translation.description or ""
+                def get_translated(text):
+                    if not text or not text.strip():
+                        return ""
+                    res = translator.translate(text, src=base_lang, dest=lang)
+                    if inspect.isawaitable(res):
+                        return asyncio.run(res).text
+                    return res.text
 
-                if to_translate_title.strip():
-                    translated_title = translator.translate(to_translate_title, src=base_lang, dest=lang).text
-                else:
-                    translated_title = ""
-
-                if to_translate_description.strip():
-                    translated_description = translator.translate(to_translate_description, src=base_lang, dest=lang).text
-                else:
-                    translated_description = ""
+                translated_title = get_translated(base_translation.title)
+                translated_description = get_translated(base_translation.description)
 
                 self.create_translation(
                     language_code=lang,

@@ -1,3 +1,5 @@
+import asyncio
+import inspect
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
@@ -63,8 +65,18 @@ class Product(TranslatableModel, BaseModel):
             if self.translations.filter(language_code=lang).exists():
                 continue
             try:
-                translated_name = translator.translate(base_translation.name, src=base_lang, dest=lang).text
-                translated_desc = translator.translate(base_translation.description, src=base_lang, dest=lang).text
+                res_name = translator.translate(base_translation.name, src=base_lang, dest=lang)
+                if inspect.isawaitable(res_name):
+                    translated_name = asyncio.run(res_name).text
+                else:
+                    translated_name = res_name.text
+
+                res_desc = translator.translate(base_translation.description, src=base_lang, dest=lang)
+                if inspect.isawaitable(res_desc):
+                    translated_desc = asyncio.run(res_desc).text
+                else:
+                    translated_desc = res_desc.text
+
                 translated_slug = slugify(f"{translated_name}-{self.unique_code}", allow_unicode=True)
 
                 self.create_translation(
@@ -208,17 +220,3 @@ class ProductSpecsTemplate(TranslatableModel, BaseModel):
 
     def __str__(self):
         return self.safe_translation_getter('name', any_language=True) or "Unnamed Template"
-    
-    
-# class Certificates(BaseModel):
-#     """Company certificates"""
-#     image = models.ImageField(upload_to='certificates/', blank=True, null=True)
-#     ordering = models.PositiveIntegerField(default=0)
-
-#     class Meta:
-#         ordering = ['ordering', 'id']
-#         verbose_name = _("Certificate")
-#         verbose_name_plural = _("Certificates")
-
-#     def __str__(self):
-#         return f"Certificate {self.pk}"

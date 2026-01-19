@@ -1,3 +1,5 @@
+import asyncio
+import inspect
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
@@ -14,9 +16,7 @@ class Company(TranslatableModel, BaseModel):
     translations = TranslatedFields(
         name=models.CharField(max_length=255, blank=True, null=True),
         address=models.CharField(max_length=255, blank=True, null=True),
-        # about_us=models.TextField(max_length=255, blank=True, null=True),
     )
-    # logo = models.ImageField(upload_to='company/', blank=True, null=True)
     telegram = models.URLField(max_length=2000, blank=True, null=True)
     instagram = models.URLField(max_length=2000, blank=True, null=True)
     facebook = models.URLField(max_length=2000, blank=True, null=True)
@@ -30,7 +30,7 @@ class Company(TranslatableModel, BaseModel):
         verbose_name_plural = _("Companies")
 
     def __str__(self):
-        return self.safe_translation_getter('name') or "Company"
+        return self.safe_translation_getter('name', any_language=True) or "Company"
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -49,15 +49,21 @@ class Company(TranslatableModel, BaseModel):
                 if self.translations.filter(language_code=lang).exists():
                     continue
 
-                translated_name = translator.translate(base_translation.name, src=base_lang, dest=lang).text
-                translated_address = translator.translate(base_translation.address, src=base_lang, dest=lang).text
-                translated_about = translator.translate(base_translation.about_us, src=base_lang, dest=lang).text
+                def translate_field(text):
+                    if not text:
+                        return ""
+                    res = translator.translate(text, src=base_lang, dest=lang)
+                    if inspect.isawaitable(res):
+                        return asyncio.run(res).text
+                    return res.text
+
+                translated_name = translate_field(base_translation.name)
+                translated_address = translate_field(base_translation.address)
 
                 self.create_translation(
                     language_code=lang,
                     name=translated_name,
                     address=translated_address,
-                    about_us=translated_about,
                 )
                 print(f"✅ Translated {lang}: {translated_name}")
             except Exception as e:
