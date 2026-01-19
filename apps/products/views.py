@@ -3,7 +3,10 @@ from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework import permissions
 from .models import Product, ProductImage, ProductLongDesc, ProductPackageContentImages, ProductUsage, ProductSpecs, ProductSpecsTemplate
+from .utils import send_product_inquiry_telegram
+from apps.company.models import Connection
 from .serializers import ProductSerializer, ProductImageSerializer
 from apps.categories.models import SubCategory
 from django.contrib.admin.views.decorators import staff_member_required
@@ -16,6 +19,7 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from django.utils.text import slugify
 from django.http import JsonResponse
+from django.conf import settings
 import uuid
 import json
 
@@ -157,6 +161,57 @@ class ProductImageView(APIView):
         images = ProductImage.objects.filter(product_id=product_id)
         serializer = ProductImageSerializer(images, many=True, context={'request': request})
         return Response(serializer.data)
+
+
+class ProductInquiryView(generics.CreateAPIView):
+    """Handle product inquiry form submissions"""
+    permission_classes = [permissions.AllowAny]
+    
+    def post(self, request):
+        product_id = request.data.get('product_id')
+        name = request.data.get('name')
+        phone_number = request.data.get('phone_number')
+        message = request.data.get('message')
+        
+        product_data = None
+        if product_id:
+            try:
+                # Get product info for telegram message
+                product = Product.objects.get(id=product_id)
+                # Ensure we get name/slug in a consistent language (uz)
+                product.set_current_language('uz')
+                
+                # Try to construct a link if we have request context
+                product_url = f"/products/{product.slug}"
+                if hasattr(request, 'build_absolute_uri'):
+                    # This might be tricky if frontend is on different domain
+                    # But often the backend knows the frontend domain
+                    pass
+                
+                product_data = {
+                    'name': product.name,
+                    'sku': product.sku,
+                    'url': f"{settings.BASE_URL}/uz{product_url}" # Placeholder domain
+                }
+            except Product.DoesNotExist:
+                pass
+        
+        # Send Telegram message
+        send_product_inquiry_telegram(
+            name=name,
+            phone_number=phone_number,
+            message=message,
+            product_data=product_data
+        )
+        
+        # Save to database
+        Connection.objects.create(
+            name=name,
+            phone_number=phone_number,
+            message=f"[MAHSULOT SO'ROVI: {product_data['name'] if product_data else 'ID:'+str(product_id)}] {message}"
+        )
+        
+        return Response({"success": True}, status=200)
 
 
 # class CertificatesView(APIView):

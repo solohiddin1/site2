@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     ProductListView, ProductDetailView, ProductBySubCategoryView,
-    ProductImageView,
+    ProductImageView, ProductInquiryView,
     list_products_view, add_product_view, edit_product_view, delete_product_image_view, delete_package_image_view,
     list_specs_templates_view, add_specs_template_view, edit_specs_template_view, delete_specs_template_view,
     get_specs_template_view
@@ -28,5 +28,6 @@ urlpatterns = [
     path('images/', ProductImageView.as_view(), name='product-images'),
     path('subcategories/<path:slug>/products/', ProductBySubCategoryView.as_view(), name='subcategory-products'),
     # path('certificates/', CertificatesView.as_view(), name='certificates'),
+    path('inquiry/send/', ProductInquiryView.as_view(), name='product-inquiry'),
     path('<path:slug>/', ProductDetailView.as_view(), name='product-detail'),
 ]

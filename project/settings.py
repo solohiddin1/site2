@@ -256,3 +256,4 @@ SESSION_COOKIE_AGE = 1209600  # 2 hafta
 SESSION_SAVE_EVERY_REQUEST = False  # Har request'da save qilmaslik (performance)
 SESSION_COOKIE_SECURE = not DEBUG  # Production'da HTTPS orqali
 SESSION_COOKIE_HTTPONLY = True  # XSS himoyasi
+BASE_URL = 'http://localhost:8080'

@@ -1,7 +1,9 @@
 import os
 import io
+import requests
 from PIL import Image
 from django.core.files.base import ContentFile
+from django.conf import settings
 
 """for product model"""
 def compress_image(
@@ -27,3 +29,33 @@ def compress_image(
     filename = f"{name}_{sizes[0]}x{sizes[1]}.{ext}"
 
     return ContentFile(buffer.getvalue(), name=filename)
+
+
+def send_product_inquiry_telegram(name, phone_number, message, product_data=None):
+    TELEGRAM_TOKEN = settings.TELEGRAM_TOKEN
+    CHAT_ID = settings.CHAT_ID
+    
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    
+    inquiry_text = (
+        f"<b>🛒 Yangi Mahsulot So'rovi</b>\n\n"
+        f"<b>👤 Ism:</b> {name}\n"
+        f"<b>📞 Telefon:</b> {phone_number}\n"
+        f"<b>💬 Xabar:</b> {message}\n"
+    )
+    
+    if product_data:
+        inquiry_text += (
+            f"\n<b>📦 Mahsulot Ma'lumotlari:</b>\n"
+            f"<b>🔹 Nomi:</b> {product_data.get('name')}\n"
+            f"<b>🔹 Artikul:</b> {product_data.get('sku')}\n"
+            f"<b>🔗 Link:</b> <a href=\"{product_data.get('url')}\">Ko'rish</a>\n"
+            f"<b>🔗 Link:</b> {product_data.get('url')}\n"
+        )
+        
+    payload = {
+        "chat_id": CHAT_ID,
+        "text": inquiry_text,
+        "parse_mode": "HTML"
+    }
+    requests.post(url, data=payload)
