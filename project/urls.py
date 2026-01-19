@@ -24,9 +24,9 @@ from rest_framework import permissions
 
 schema = get_schema_view(
     openapi.Info(
-        title="Epa",
+        title="Gidrox",
         default_version="v1",
-        description="API documentation for the Epa",
+        description="API documentation for the Gidrox",
         contact=openapi.Contact(email="sirojiddinovsolohiddin961@gmail.com"),
         license=openapi.License(name="BSD License"),
     ),
@@ -38,10 +38,18 @@ schema = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('app.urls')),
+    
+    # API endpoints - organized by app
+    path('api/categories/', include('apps.categories.urls')),
+    path('api/products/', include('apps.products.urls')),
+    path('api/company/', include('apps.company.urls')),
+    path('api/services/', include('apps.services.urls')),
+    
+    # Swagger documentation
     path('swagger/', schema.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path("ckeditor/", include("ckeditor_uploader.urls")),
-    path('i18n/', include('django.conf.urls.i18n')),  # Required for Jazzmin language chooser
+    
+    # Internationalization
+    path('i18n/', include('django.conf.urls.i18n')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

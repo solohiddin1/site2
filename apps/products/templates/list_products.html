@@ -1,0 +1,636 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mahsulotlar ro'yxati - Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #e5e7eb;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+            border-color: #E31E24;
+        }
+
+        .product-image {
+            height: 220px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .product-card:hover .product-image img {
+            transform: scale(1.05);
+        }
+
+        .image-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+            color: #adb5bd;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.35rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-warning {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-danger {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #E31E24 0%, #c01920 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(227, 30, 36, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #f3f4f6;
+            color: #374151;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
+            border-color: #9ca3af;
+        }
+
+        .btn-edit {
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-edit:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .btn-small {
+            background-color: #6b7280;
+            color: white;
+            padding: 0.375rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-small:hover {
+            background-color: #4b5563;
+        }
+
+        .category-dropdown {
+            cursor: pointer;
+            user-select: none;
+            padding: 0.75rem;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #1f2937;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .category-dropdown:hover {
+            background-color: #f9fafb;
+            border-color: #E31E24;
+        }
+
+        .category-dropdown.active {
+            background-color: #fef2f2;
+            border-color: #E31E24;
+        }
+
+        .dropdown-content {
+            display: none;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .dropdown-content.show {
+            display: block;
+        }
+
+        .subcategory-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f3f4f6;
+            color: #374151;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .subcategory-item:hover {
+            background-color: #f9fafb;
+            color: #E31E24;
+            padding-left: 1.25rem;
+        }
+
+        .subcategory-item.selected {
+            background-color: #fef2f2;
+            color: #E31E24;
+            font-weight: 600;
+        }
+
+        .header-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            margin-bottom: 2rem;
+            border: 1px solid #e5e7eb;
+        }
+
+        .filter-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            margin-bottom: 2rem;
+            border: 1px solid #e5e7eb;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .product-info {
+            padding: 1.25rem;
+        }
+
+        .product-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .product-meta {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.5rem 1rem;
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 6px;
+        }
+
+        .product-meta strong {
+            color: #1f2937;
+            font-weight: 600;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .product-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 1rem;
+            }
+
+            .header-section,
+            .filter-section {
+                padding: 1rem;
+            }
+
+            .btn-primary,
+            .btn-secondary {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .product-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+
+            .product-image {
+                height: 150px;
+            }
+
+            .product-meta {
+                font-size: 0.75rem;
+                padding: 0.75rem;
+                gap: 0.375rem 0.75rem;
+            }
+
+            .product-actions {
+                flex-direction: column;
+            }
+
+            .btn-edit {
+                justify-content: center;
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="w-full max-w-7xl mx-auto px-4 py-8">
+        <!-- Header Section -->
+        <div class="header-section">
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+                <div>
+                    <h1 class="text-4xl font-bold text-gray-900 mb-2">
+                        <i class="fas fa-box mr-3 text-red-600"></i>Mahsulotlar ro'yxati
+                    </h1>
+                    <p class="text-gray-600">Barcha mahsulotlarni ko'rish, tahrirlash va boshqarish</p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <a href="{% url 'products:add_product' %}" class="btn-primary text-center">
+                        <i class="fas fa-plus mr-2"></i>Yangi mahsulot
+                    </a>
+                    <a href="{% url 'products:list_specs_templates' %}" class="btn-secondary text-center">
+                        <i class="fas fa-list-check mr-2"></i>Xususiyatlar Shablonlari
+                    </a>
+                    <a href="{% url 'admin:index' %}" class="btn-secondary text-center">
+                        <i class="fas fa-cog mr-2"></i>Admin Panel
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <!-- Search Input -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-search mr-2"></i>Qidirish
+                    </label>
+                    <input type="text" name="search" value="{{ search_query }}" 
+                        placeholder="Mahsulot nomi, SKU yoki kod..." 
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                </div>
+
+                <!-- Category Filter with Dropdown -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-filter mr-2"></i>Kategoriya
+                    </label>
+                    <div class="relative" id="categoryDropdown">
+                        <div class="category-dropdown" onclick="toggleDropdown(event)">
+                            <span id="selectedCategoryName">Barchasi</span>
+                            <i class="fas fa-chevron-down ml-2"></i>
+                        </div>
+                        <div class="dropdown-content" id="dropdownContent">
+                            <div class="subcategory-item" data-category-id="" onclick="selectCategory(this, '')">
+                                <strong>Barchasi</strong>
+                            </div>
+                            {% for cat in categories %}
+                            <div class="subcategory-item" onclick="toggleSubcategories(event, this)">
+                                <strong>
+                                    <i class="fas fa-folder mr-2"></i>{{ cat.name }}
+                                    <i class="fas fa-chevron-right float-right mt-1"></i>
+                                </strong>
+                            </div>
+                            <div class="subcategories-list hidden ml-4" data-parent-category="{{ cat.id }}">
+                                {% for sub in cat.subcategories.all %}
+                                <div class="subcategory-item" data-category-id="{{ cat.id }}" 
+                                     onclick="selectCategory(this, '{{ cat.id }}')">
+                                    <i class="fas fa-circle-dot mr-2" style="font-size: 0.6rem;"></i>{{ sub.name }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="category" id="categoryInput" value="{{ selected_category }}">
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-2">
+                    <button type="submit" class="btn-primary flex-1 md:flex-none">
+                        <i class="fas fa-check mr-2"></i>Qidirish
+                    </button>
+                    <a href="{% url 'products:list_products' %}" class="btn-secondary flex-1 md:flex-none text-center">
+                        <i class="fas fa-redo mr-2"></i>Tozalash
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Products Grid -->
+        {% if products %}
+        <div class="mb-6 flex justify-between items-center">
+            <h2 class="text-lg font-semibold text-gray-900">
+                <i class="fas fa-list mr-2 text-red-600"></i>{{ products|length }} ta mahsulot
+            </h2>
+        </div>
+        <div class="product-grid">
+            {% for product in products %}
+            <div class="product-card">
+                <!-- Product Image -->
+                <div class="product-image">
+                    {% if product.images.first %}
+                        <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" loading="lazy">
+                    {% else %}
+                        <div class="image-placeholder">
+                            <div class="text-center">
+                                <i class="fas fa-image text-4xl mb-2"></i>
+                                <p class="text-sm">Rasm yo'q</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Product Info -->
+                <div class="product-info">
+                    <!-- Badges -->
+                    <div class="flex justify-between items-start mb-3 gap-2">
+                        <h3 class="product-name flex-1">{{ product.name }}</h3>
+                        {% if product.images.count > 0 %}
+                            <span class="badge badge-success">
+                                <i class="fas fa-image mr-1"></i>{{ product.images.count }}
+                            </span>
+                        {% else %}
+                            <span class="badge badge-warning">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>Yo'q
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Description -->
+                    {% if product.description %}
+                    <p class="text-sm text-gray-600 mb-3 line-clamp-2 leading-tight">
+                        {{ product.description|truncatewords:20 }}
+                    </p>
+                    {% endif %}
+
+                    <!-- Product Metadata -->
+                    <div class="product-meta">
+                        <strong>SKU:</strong>
+                        <span class="font-mono text-xs bg-white px-2 py-1 rounded">
+                            {{ product.sku|default:"—" }}
+                        </span>
+                        
+                        <strong>Kod:</strong>
+                        <span class="font-mono text-xs bg-white px-2 py-1 rounded">
+                            {% if product.unique_code %}
+                                {{ product.unique_code }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </span>
+
+                        <strong>Kategoriya:</strong>
+                        <span class="text-xs">
+                            {% if product.subcategory %}
+                                {{ product.subcategory.name }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </span>
+
+                        <strong>Kafolat:</strong>
+                        <span class="text-xs">
+                            {% if product.warranty_months %}
+                                {{ product.warranty_months }} oy
+                            {% else %}
+                                —
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="product-actions">
+                        <a href="{% url 'products:edit_product' product.id %}" class="btn-edit flex-1">
+                            <i class="fas fa-edit"></i>Tahrirlash
+                        </a>
+                        <button class="btn-small" onclick="copyProductCode('{{ product.unique_code }}')">
+                            <i class="fas fa-copy"></i>Nusxa
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if products.has_other_pages %}
+        <div class="mt-10 flex justify-center items-center gap-2">
+            <nav class="flex items-center gap-1 flex-wrap justify-center">
+                {% if products.has_previous %}
+                <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}"
+                    class="btn-secondary p-2">
+                    <i class="fas fa-chevron-left"></i><i class="fas fa-chevron-left"></i>
+                </a>
+                <a href="?page={{ products.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}"
+                    class="btn-secondary p-2">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+                {% endif %}
+
+                {% for num in products.paginator.page_range %}
+                    {% if products.number == num %}
+                    <span class="px-4 py-2 font-semibold text-white bg-red-600 rounded-lg">
+                        {{ num }}
+                    </span>
+                    {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                    <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}"
+                        class="btn-secondary p-2">
+                        {{ num }}
+                    </a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if products.has_next %}
+                <a href="?page={{ products.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}"
+                    class="btn-secondary p-2">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+                <a href="?page={{ products.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}"
+                    class="btn-secondary p-2">
+                    <i class="fas fa-chevron-right"></i><i class="fas fa-chevron-right"></i>
+                </a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-16">
+            <div class="inline-block">
+                <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">Mahsulot topilmadi</h3>
+                <p class="text-gray-600 mb-6">Qidiruv shartlariga mos mahsulot mavjud emas</p>
+                <a href="{% url 'products:add_product' %}" class="btn-primary">
+                    <i class="fas fa-plus mr-2"></i>Birinchi mahsulotni qo'shing
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function toggleDropdown(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('categoryDropdown');
+            const content = document.getElementById('dropdownContent');
+            dropdown.classList.toggle('active');
+            content.classList.toggle('show');
+        }
+
+        function toggleSubcategories(event, element) {
+            event.stopPropagation();
+            const icon = element.querySelector('.fa-chevron-right');
+            const category = element.parentElement;
+            const categoryId = category.querySelector('[data-parent-category]')?.getAttribute('data-parent-category');
+            const subList = category.parentElement.querySelector(`.subcategories-list[data-parent-category="${categoryId}"]`);
+            
+            if (subList) {
+                subList.classList.toggle('hidden');
+                icon.style.transform = subList.classList.contains('hidden') ? 'rotate(0)' : 'rotate(90deg)';
+            }
+        }
+
+        function selectCategory(element, categoryId) {
+            document.getElementById('categoryInput').value = categoryId;
+            document.getElementById('selectedCategoryName').textContent = element.textContent.trim() || 'Barchasi';
+            document.getElementById('categoryDropdown').classList.remove('active');
+            document.getElementById('dropdownContent').classList.remove('show');
+            document.querySelector('form').submit();
+        }
+
+        function copyProductCode(code) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(code).then(() => {
+                    alert('Kod nusxalandi: ' + code);
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                });
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('categoryDropdown');
+            if (!dropdown.contains(event.target)) {
+                dropdown.classList.remove('active');
+                document.getElementById('dropdownContent').classList.remove('show');
+            }
+        });
+
+        // Initialize category dropdown with selected value
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectedCategory = '{{ selected_category }}';
+            if (selectedCategory) {
+                const item = document.querySelector(`[data-category-id="${selectedCategory}"]`);
+                if (item) {
+                    const categoryName = item.textContent.trim().split('\n')[0];
+                    document.getElementById('selectedCategoryName').textContent = categoryName;
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
