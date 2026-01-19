@@ -2,7 +2,7 @@ from rest_framework import serializers
 from parler_rest.serializers import TranslatableModelSerializer, TranslatedFieldsField
 from .models import (
     Product, ProductImage, ProductLongDesc, ProductUsage,
-    ProductPackageContentImages, ProductSpecs, Certificates
+    ProductPackageContentImages, ProductSpecs
 )
 from apps.categories.serializers import SubCategorySerializer
 
@@ -83,7 +83,7 @@ class ProductSerializer(TranslatableModelSerializer):
         return ProductPackageContentImagesSerializer(qs, many=True, context=self.context).data
 
 
-class CertificatesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Certificates
-        fields = ['id', 'image', 'ordering']
+# class CertificatesSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Certificates
+#         fields = ['id', 'image', 'ordering']

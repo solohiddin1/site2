@@ -1,0 +1,230 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shablonni Tahrirlash - Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; overflow-x: hidden; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-button { cursor: pointer; padding: 0.75rem 1.5rem; border-bottom: 2px solid transparent; font-size: 0.875rem; transition: all 0.2s; }
+        .tab-button.active { border-bottom-color: #E31E24; color: #E31E24; font-weight: 600; }
+        .btn-primary { background: linear-gradient(135deg, #E31E24 0%, #c01920 100%); color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; transition: all 0.3s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(227, 30, 36, 0.3); }
+        .btn-secondary { background-color: #f3f4f6; color: #374151; padding: 0.75rem 1.5rem; border-radius: 0.5rem; border: 1px solid #d1d5db; font-weight: 600; }
+        .btn-secondary:hover { background-color: #e5e7eb; }
+        .btn-outline { border: 1px solid #d1d5db; padding: 0.5rem 1rem; border-radius: 0.375rem; background: white; transition: all 0.2s; }
+        .btn-outline:hover { background-color: #f3f4f6; }
+        .btn-danger { background-color: #dc2626; color: white; padding: 0.5rem; border-radius: 0.375rem; transition: all 0.2s; }
+        .btn-danger:hover { background-color: #b91c1c; }
+    </style>
+</head>
+<body>
+    <div class="w-full max-w-6xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                        <i class="fas fa-edit text-red-600 mr-2"></i>Shablonni Tahrirlash
+                    </h1>
+                    <p class="text-gray-600">Xususiyatlar shablonini yangilash</p>
+                </div>
+                <a href="{% url 'products:list_specs_templates' %}" class="btn-secondary text-center">
+                    <i class="fas fa-arrow-left mr-2"></i>Orqaga
+                </a>
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="{% if message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% elif message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %} px-4 py-3 rounded mb-4 border shadow-md">
+                    <strong>{% if message.tags == 'success' %}✓{% elif message.tags == 'error' %}✗{% else %}ℹ{% endif %}</strong> {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" id="templateForm">
+            {% csrf_token %}
+            <input type="hidden" name="specs_json" id="specs-json">
+            
+            <!-- Language Tabs -->
+            <div class="bg-white rounded-lg shadow-sm mb-6">
+                <div class="border-b border-gray-200">
+                    <div class="flex">
+                        <button type="button" class="tab-button active" onclick="switchTab('uz')">
+                            <i class="fas fa-language mr-1"></i>O'zbekcha
+                        </button>
+                        <button type="button" class="tab-button" onclick="switchTab('en')">
+                            <i class="fas fa-language mr-1"></i>English
+                        </button>
+                        <button type="button" class="tab-button" onclick="switchTab('ru')">
+                            <i class="fas fa-language mr-1"></i>Русский
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Uzbek Tab -->
+                <div id="tab-uz" class="tab-content active p-6">
+                    <h3 class="text-xl font-semibold mb-4"><i class="fas fa-heading mr-2"></i>O'zbek tilida ma'lumotlar</h3>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Shablon nomi *</label>
+                        <input type="text" name="name_uz" value="{{ template_uz.name }}" required 
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">
+                            <i class="fas fa-list mr-2"></i>Texnik xususiyatlar
+                        </label>
+                        <div id="specs-uz" class="space-y-2"></div>
+                        <button type="button" onclick="addSpec('uz')" class="btn-outline mt-3">
+                            <i class="fas fa-plus mr-2"></i>Xususiyat qo'shish
+                        </button>
+                    </div>
+                </div>
+
+                <!-- English Tab -->
+                <div id="tab-en" class="tab-content p-6">
+                    <h3 class="text-xl font-semibold mb-4"><i class="fas fa-heading mr-2"></i>Information in English</h3>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Template name</label>
+                        <input type="text" name="name_en" value="{{ template_en.name }}" 
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">
+                            <i class="fas fa-list mr-2"></i>Specifications
+                        </label>
+                        <div id="specs-en" class="space-y-2"></div>
+                        <button type="button" onclick="addSpec('en')" class="btn-outline mt-3">
+                            <i class="fas fa-plus mr-2"></i>Add Specification
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Russian Tab -->
+                <div id="tab-ru" class="tab-content p-6">
+                    <h3 class="text-xl font-semibold mb-4"><i class="fas fa-heading mr-2"></i>Информация на русском</h3>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Название шаблона</label>
+                        <input type="text" name="name_ru" value="{{ template_ru.name }}" 
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">
+                            <i class="fas fa-list mr-2"></i>Технические характеристики
+                        </label>
+                        <div id="specs-ru" class="space-y-2"></div>
+                        <button type="button" onclick="addSpec('ru')" class="btn-outline mt-3">
+                            <i class="fas fa-plus mr-2"></i>Добавить характеристику
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="bg-white rounded-lg shadow-sm p-6 flex justify-end gap-3">
+                <a href="{% url 'products:list_specs_templates' %}" class="btn-secondary">
+                    <i class="fas fa-times mr-2"></i>Bekor qilish
+                </a>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-save mr-2"></i>Saqlash
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function switchTab(lang) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`tab-${lang}`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function addSpec(lang) {
+            const container = document.getElementById(`specs-${lang}`);
+            const row = document.createElement('div');
+            row.className = 'flex gap-2 spec-row';
+            row.innerHTML = `
+                <input type="text" placeholder="Kalit" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500" data-lang="${lang}" data-type="key">
+                <input type="text" placeholder="Qiymat" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500" data-lang="${lang}" data-type="value">
+                <button type="button" onclick="removeSpec(this, '${lang}')" class="btn-danger w-10"><i class="fas fa-times"></i></button>
+            `;
+            container.appendChild(row);
+            updateDeleteButtons(lang);
+        }
+
+        function removeSpec(button, lang) {
+            const row = button.closest('.spec-row');
+            row.remove();
+            updateDeleteButtons(lang);
+        }
+
+        function updateDeleteButtons(lang) {
+            const container = document.getElementById(`specs-${lang}`);
+            const rows = container.querySelectorAll('.spec-row');
+            rows.forEach((row, index) => {
+                const deleteBtn = row.querySelector('button');
+                deleteBtn.style.display = rows.length > 1 ? 'block' : 'none';
+            });
+        }
+
+        // Load existing specs
+        const existingSpecs = {{ specs|safe }};
+
+        ['uz', 'en', 'ru'].forEach(lang => {
+            const container = document.getElementById('specs-' + lang);
+            container.innerHTML = ''; // Clear container
+
+            const langSpecs = existingSpecs[lang] || {};
+            const specsArray = Object.entries(langSpecs);
+
+            if (specsArray.length === 0) {
+                addSpec(lang);
+            } else {
+                specsArray.forEach(([key, value]) => {
+                    addSpec(lang);
+                    const rows = container.querySelectorAll('.spec-row');
+                    const lastRow = rows[rows.length - 1];
+                    lastRow.querySelector('input[data-type="key"]').value = key;
+                    lastRow.querySelector('input[data-type="value"]').value = value;
+                });
+            }
+
+            updateDeleteButtons(lang);
+        });
+
+        // Form submission
+        document.getElementById('templateForm').addEventListener('submit', function(e) {
+            const specs = { uz: {}, en: {}, ru: {} };
+
+            ['uz', 'en', 'ru'].forEach(lang => {
+                const container = document.getElementById('specs-' + lang);
+                const rows = container.querySelectorAll('.spec-row');
+
+                rows.forEach(row => {
+                    const keyInput = row.querySelector('input[data-type="key"]');
+                    const valueInput = row.querySelector('input[data-type="value"]');
+
+                    if (keyInput.value && valueInput.value) {
+                        specs[lang][keyInput.value] = valueInput.value;
+                    }
+                });
+            });
+
+            document.getElementById('specs-json').value = JSON.stringify(specs);
+        });
+    </script>
+</body>
+</html>

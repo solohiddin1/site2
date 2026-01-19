@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import City, ServiceLocation, ServiceCenterDescription
-from .serializers import CitySerializer, ServiceLocationSerializer, ServiceCenterDescriptionSerializer
+from .models import City, ServiceLocation, ServiceCenterDescription, Store
+from .serializers import CitySerializer, ServiceLocationSerializer, ServiceCenterDescriptionSerializer, StoreSerializer
 
 
 class CityListView(APIView):
@@ -25,4 +25,12 @@ class ServiceCenterDescriptionListView(APIView):
     def get(self, request):
         service_center_descriptions = ServiceCenterDescription.objects.all()
         serializer = ServiceCenterDescriptionSerializer(service_center_descriptions, many=True, context={'request': request})
+        return Response(serializer.data)
+
+
+class StoreListView(APIView):
+    """List all stores"""
+    def get(self, request):
+        stores = Store.objects.all()
+        serializer = StoreSerializer(stores, many=True, context={'request': request})
         return Response(serializer.data)

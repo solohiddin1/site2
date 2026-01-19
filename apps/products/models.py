@@ -82,6 +82,8 @@ class ProductImage(BaseModel):
     """Multiple images per product with ordering"""
     product = models.ForeignKey(Product, related_name='images', on_delete=models.SET_NULL, null=True, blank=True)
     image = models.ImageField(upload_to='products/', blank=True, null=True)
+    image_desktop = models.ImageField(upload_to='products/desktop/', blank=True, null=True)
+    image_mobile = models.ImageField(upload_to='products/mobile/', blank=True, null=True)
     alt = models.CharField(max_length=255, blank=True)
     ordering = models.PositiveIntegerField(default=0)
 
@@ -193,15 +195,30 @@ class ProductSpecs(TranslatableModel, BaseModel):
         return super().formfield(**kwargs)
 
 
-class Certificates(BaseModel):
-    """Company certificates"""
-    image = models.ImageField(upload_to='certificates/', blank=True, null=True)
-    ordering = models.PositiveIntegerField(default=0)
+class ProductSpecsTemplate(TranslatableModel, BaseModel):
+    """Template for product specifications"""
+    translations = TranslatedFields(
+        name=models.CharField(max_length=255, blank=True, null=True),
+        specs=models.JSONField(_("Specifications Template"), encoder=None, decoder=None, blank=True, null=True)
+    )
 
     class Meta:
-        ordering = ['ordering', 'id']
-        verbose_name = _("Certificate")
-        verbose_name_plural = _("Certificates")
+        verbose_name = _("Product Specs Template")
+        verbose_name_plural = _("Product Specs Templates")
 
     def __str__(self):
-        return f"Certificate {self.pk}"
+        return self.safe_translation_getter('name', any_language=True) or "Unnamed Template"
+    
+    
+# class Certificates(BaseModel):
+#     """Company certificates"""
+#     image = models.ImageField(upload_to='certificates/', blank=True, null=True)
+#     ordering = models.PositiveIntegerField(default=0)
+
+#     class Meta:
+#         ordering = ['ordering', 'id']
+#         verbose_name = _("Certificate")
+#         verbose_name_plural = _("Certificates")
+
+#     def __str__(self):
+#         return f"Certificate {self.pk}"

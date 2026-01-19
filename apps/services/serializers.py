@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from parler_rest.serializers import TranslatableModelSerializer, TranslatedFieldsField
-from .models import City, ServiceLocation, ServiceCenterDescription
+from .models import City, ServiceLocation, ServiceCenterDescription, Store
 
 
 class CitySerializer(serializers.ModelSerializer):
@@ -24,3 +24,11 @@ class ServiceLocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceLocation
         fields = ['id', 'city', 'address', 'phone', 'email', 'map_url', 'description']
+
+
+class StoreSerializer(TranslatableModelSerializer):
+    translations = TranslatedFieldsField(shared_model=Store)
+
+    class Meta:
+        model = Store
+        fields = ['id', 'translations', 'address', 'phone', 'email', 'map_url']

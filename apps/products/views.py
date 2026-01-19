@@ -3,8 +3,8 @@ from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Product, ProductImage, Certificates, ProductLongDesc, ProductUsage, ProductSpecs
-from .serializers import ProductSerializer, ProductImageSerializer, CertificatesSerializer
+from .models import Product, ProductImage, ProductLongDesc, ProductPackageContentImages, ProductUsage, ProductSpecs, ProductSpecsTemplate
+from .serializers import ProductSerializer, ProductImageSerializer
 from apps.categories.models import SubCategory
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator
@@ -15,6 +15,7 @@ from django.utils import translation
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.utils.text import slugify
+from django.http import JsonResponse
 import uuid
 import json
 
@@ -158,12 +159,12 @@ class ProductImageView(APIView):
         return Response(serializer.data)
 
 
-class CertificatesView(APIView):
-    """List all certificates"""
-    def get(self, request):
-        certificates = Certificates.objects.all()
-        serializer = CertificatesSerializer(certificates, many=True, context={'request': request})
-        return Response(serializer.data)
+# class CertificatesView(APIView):
+#     """List all certificates"""
+#     def get(self, request):
+#         certificates = Certificates.objects.all()
+#         serializer = CertificatesSerializer(certificates, many=True, context={'request': request})
+#         return Response(serializer.data)
 
 
 
@@ -426,9 +427,20 @@ def add_product_view(request):
             'category': sub.category_id
         })
     
+    # Get specs templates
+    specs_templates = ProductSpecsTemplate.objects.all().order_by('translations__name')
+    templates_list = []
+    for tmpl in specs_templates:
+        tmpl.set_current_language('uz')
+        templates_list.append({
+            'id': tmpl.id,
+            'name': tmpl.name or 'Unnamed'
+        })
+    
     context = {
         'categories': categories_list,
-        'subcategories_json': json.dumps(subcategories_list)
+        'subcategories_json': json.dumps(subcategories_list),
+        'specs_templates': templates_list
     }
     
     return render(request, 'add_product.html', context)
@@ -479,7 +491,7 @@ def list_products_view(request):
         'search_query': search_query,
         'selected_category': selected_category
     }
-    print(products_page, 'products_page')
+    print(products_page[0].unique_code, 'products_page')
     
     return render(request, 'list_products.html', context)
 
@@ -657,6 +669,16 @@ def edit_product_view(request, product_id):
             'category': sub.category_id
         })
     
+    # Get specs templates
+    specs_templates = ProductSpecsTemplate.objects.all().order_by('translations__name')
+    templates_list = []
+    for tmpl in specs_templates:
+        tmpl.set_current_language('uz')
+        templates_list.append({
+            'id': tmpl.id,
+            'name': tmpl.name or 'Unnamed'
+        })
+    
     context = {
         'product': product,
         'product_uz': product_uz,
@@ -667,7 +689,174 @@ def edit_product_view(request, product_id):
         'specs': specs,
         'categories': categories_list,
         'subcategories_json': json.dumps(subcategories_list),
+        'specs_templates': templates_list,
         'is_edit': True
     }
     
     return render(request, 'edit_product.html', context)
+
+
+# ===================== SPECS TEMPLATES VIEWS =====================
+
+@staff_member_required
+def list_specs_templates_view(request):
+    """List all specs templates"""
+    templates = ProductSpecsTemplate.objects.all().order_by('-created_at')
+    
+    # Set language for display
+    for template in templates:
+        template.set_current_language('uz')
+    
+    context = {
+        'templates': templates
+    }
+    
+    return render(request, 'list_specs_templates.html', context)
+
+
+@staff_member_required
+def add_specs_template_view(request):
+    """Add new specs template"""
+    if request.method == 'POST':
+        try:
+            # Get template name for each language
+            name_uz = request.POST.get('name_uz', '').strip()
+            name_en = request.POST.get('name_en', '').strip()
+            name_ru = request.POST.get('name_ru', '').strip()
+            
+            if not name_uz:
+                messages.error(request, "O'zbekcha nom kiritilishi shart!")
+                return redirect('products:add_specs_template')
+            
+            # Parse specs JSON for each language
+            specs_json = request.POST.get('specs_json', '{}')
+            specs_data = json.loads(specs_json)
+            
+            # Create template
+            template = ProductSpecsTemplate()
+            
+            # Save for each language
+            for lang, name in [('uz', name_uz), ('en', name_en), ('ru', name_ru)]:
+                template.set_current_language(lang)
+                template.name = name
+                template.specs = specs_data.get(lang, {})
+            
+            template.save()
+            
+            messages.success(request, f"Shablon muvaffaqiyatli qo'shildi!")
+            return redirect('products:list_specs_templates')
+            
+        except Exception as e:
+            messages.error(request, f'Xatolik: {str(e)}')
+            return redirect('products:add_specs_template')
+    
+    return render(request, 'add_specs_template.html')
+
+
+@staff_member_required
+def edit_specs_template_view(request, template_id):
+    """Edit existing specs template"""
+    template = get_object_or_404(ProductSpecsTemplate, id=template_id)
+    
+    if request.method == 'POST':
+        try:
+            # Update names
+            name_uz = request.POST.get('name_uz', '').strip()
+            name_en = request.POST.get('name_en', '').strip()
+            name_ru = request.POST.get('name_ru', '').strip()
+            
+            if not name_uz:
+                messages.error(request, "O'zbekcha nom kiritilishi shart!")
+                return redirect('products:edit_specs_template', template_id=template_id)
+            
+            # Parse specs JSON
+            specs_json = request.POST.get('specs_json', '{}')
+            specs_data = json.loads(specs_json)
+            
+            # Update for each language
+            for lang, name in [('uz', name_uz), ('en', name_en), ('ru', name_ru)]:
+                template.set_current_language(lang)
+                template.name = name
+                template.specs = specs_data.get(lang, {})
+            
+            template.save()
+            
+            messages.success(request, "Shablon muvaffaqiyatli yangilandi!")
+            return redirect('products:list_specs_templates')
+            
+        except Exception as e:
+            messages.error(request, f'Xatolik: {str(e)}')
+            return redirect('products:edit_specs_template', template_id=template_id)
+    
+    # Prepare template data for editing
+    template_uz = {}
+    template_en = {}
+    template_ru = {}
+    
+    template.set_current_language('uz')
+    template_uz = {
+        'name': template.name or '',
+        'specs': template.specs or {}
+    }
+    
+    template.set_current_language('en')
+    template_en = {
+        'name': template.name or '',
+        'specs': template.specs or {}
+    }
+    
+    template.set_current_language('ru')
+    template_ru = {
+        'name': template.name or '',
+        'specs': template.specs or {}
+    }
+    
+    # Combine specs for JavaScript
+    specs = {
+        'uz': template_uz['specs'],
+        'en': template_en['specs'],
+        'ru': template_ru['specs']
+    }
+    
+    context = {
+        'template': template,
+        'template_uz': template_uz,
+        'template_en': template_en,
+        'template_ru': template_ru,
+        'specs': json.dumps(specs),
+        'is_edit': True
+    }
+    
+    return render(request, 'edit_specs_template.html', context)
+
+
+@staff_member_required
+def delete_specs_template_view(request, template_id):
+    """Delete specs template"""
+    if request.method == 'POST':
+        try:
+            template = get_object_or_404(ProductSpecsTemplate, id=template_id)
+            template.delete()
+            return JsonResponse({'success': True, 'message': "Shablon o'chirildi"})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=400)
+    return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
+
+
+@staff_member_required
+def get_specs_template_view(request, template_id):
+    """Get specs template data (AJAX endpoint)"""
+    try:
+        template = get_object_or_404(ProductSpecsTemplate, id=template_id)
+        
+        specs_data = {}
+        for lang in ['uz', 'en', 'ru']:
+            template.set_current_language(lang)
+            specs_data[lang] = template.specs or {}
+        
+        return JsonResponse({
+            'success': True,
+            'specs': specs_data
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)

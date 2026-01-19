@@ -2,25 +2,44 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
 from googletrans import Translator
-
+from apps.company.models import BaseModel
+from apps.company.middleware import get_logger
 
 translator = Translator()
+logger = get_logger()
 
+class Store(BaseModel, TranslatableModel):
+    """Store model"""
+    translations = TranslatedFields(
+        name = models.CharField(max_length=255, blank=True, null=True), 
+        address = models.CharField(max_length=255, blank=True, null=True)
+    )
+    phone = models.CharField(max_length=50, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    map_url = models.URLField(max_length=2000, blank=True, null=True)
+    
+    class Meta:
+        verbose_name = _("Store")
+        verbose_name_plural = _("Stores")
+        ordering = ['id']
 
-class City(models.Model):
+    def __str__(self):
+        return self.safe_translation_getter('name', any_language=True) or "Store"
+
+class City(BaseModel):
     """City choices for service locations"""
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         verbose_name = _("City")
         verbose_name_plural = _("Cities")
-        ordering = ['name']
+        ordering = ['id']
 
     def __str__(self):
         return self.name
 
 
-class ServiceCenterDescription(TranslatableModel):
+class ServiceCenterDescription(BaseModel, TranslatableModel):
     """Shared description that changes only with language"""
     translations = TranslatedFields(
         title=models.CharField(max_length=255, blank=True, null=True),
@@ -69,12 +88,12 @@ class ServiceCenterDescription(TranslatableModel):
                     title=translated_title,
                     description=translated_description,
                 )
-                print(f"✅ Translated {lang}: {translated_title}")
+                logger.info(f"✅ Translated {lang}: {translated_title}")
             except Exception as e:
-                print(f"❌ Translation failed for {lang}: {e}")
+                logger.error(f"❌ Translation failed for {lang}: {e}")
 
 
-class ServiceLocation(models.Model):
+class ServiceLocation(BaseModel):
     """Service center info for each city"""
     city = models.OneToOneField(City, on_delete=models.CASCADE, related_name="service_location")
     address = models.CharField(max_length=255)
