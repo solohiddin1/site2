@@ -546,7 +546,6 @@ def list_products_view(request):
         'search_query': search_query,
         'selected_category': selected_category
     }
-    print(products_page[0].unique_code, 'products_page')
     
     return render(request, 'list_products.html', context)
 
