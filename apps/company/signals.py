@@ -1,8 +1,9 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import Banner
-from .utils import compress_image
+from .models import BannerImages as Banner
+from apps.products.utils import compress_image
 from apps.company.middleware import get_logger
+from django.db import transaction
 
 logger = get_logger()
 
@@ -12,19 +13,22 @@ def update_product_image_urls(sender, instance, created, **kwargs):
     Compress and create thumbnails when Banner is created or updated.
     If image is updated, remove old images before saving new ones.
     """
-    from django.db import transaction
     
     # Skip if no image or if already processing thumbnails
+    print("Banner post_save signal triggered...")
     if not instance.image or getattr(instance, '_skip_thumb', False):
+        print("No image found or skipping thumbnail processing.")
         return
     
     # Only process if it's a new image or the image field was changed
-    should_process = created or getattr(instance, '_image_changed', False)
+    # should_process = created or getattr(instance, '_image_changed', False)
     
-    if not should_process:
-        return
+    # if not should_process:
+    #     print("No changes to image detected; skipping compression.")
+    #     return
     
     # Use transaction.on_commit to run after the current transaction completes
+    print("Scheduling banner image compression task...")
     def compress_and_save():
         try:
             import os

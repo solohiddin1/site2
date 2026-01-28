@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'drf_yasg',
+    'drf_spectacular',
     # New modular apps
     'apps.categories',
     'apps.products',
@@ -210,7 +211,8 @@ JAZZMIN_SETTINGS = {
     "site_brand": "Gidrox ",
     # "site_logo": "jazzmin/img/nonborlogo.png",
     "order_with_respect_to": ["products", "company", "categories", "services", "users"],
-
+    # "site_logo": "img/admin_logo.png",        # path to logo in STATIC
+    # "login_logo": "img/admin_logo_large.png", # optional large logo on login page
     "user_avatar": "image",
 
     "language_chooser": True,

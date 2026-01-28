@@ -4,7 +4,9 @@ from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import permissions
-from .models import Product, ProductImage, ProductLongDesc, ProductPackageContentImages, ProductUsage, ProductSpecs, ProductSpecsTemplate
+from .models import (Product, ProductImage, ProductLongDesc, 
+                     ProductPackageContentImages, ProductUsage, 
+                     ProductSpecs, ProductSpecsTemplate, TopProduct)
 from .utils import send_product_inquiry_telegram
 from apps.company.models import Connection
 from .serializers import ProductSerializer, ProductImageSerializer
@@ -163,6 +165,18 @@ class ProductImageView(APIView):
         return Response(serializer.data)
 
 
+class TopProductsView(generics.ListAPIView):
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        lang = self.request.query_params.get('lang', 'uz')
+        
+        # Get all products that are marked as top products
+        top_product_list = TopProduct.objects.first()
+        if top_product_list:
+            return top_product_list.products.language(lang).all()
+        return Product.objects.none()
+
 class ProductInquiryView(generics.CreateAPIView):
     """Handle product inquiry form submissions"""
     permission_classes = [permissions.AllowAny]
@@ -197,7 +211,7 @@ class ProductInquiryView(generics.CreateAPIView):
                 pass
         
         # Send Telegram message
-        send_product_inquiry_telegram(
+        response = send_product_inquiry_telegram(
             name=name,
             phone_number=phone_number,
             message=message,
@@ -210,7 +224,7 @@ class ProductInquiryView(generics.CreateAPIView):
             phone_number=phone_number,
             message=f"[MAHSULOT SO'ROVI: {product_data['name'] if product_data else 'ID:'+str(product_id)}] {message}"
         )
-        
+        print(f"Telegram response status: {response.status_code}, response text: {response.text}")
         return Response({"success": True}, status=200)
 
 

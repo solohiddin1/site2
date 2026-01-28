@@ -220,3 +220,27 @@ class ProductSpecsTemplate(TranslatableModel, BaseModel):
 
     def __str__(self):
         return self.safe_translation_getter('name', any_language=True) or "Unnamed Template"
+
+
+class TopProduct(BaseModel):
+    """Featured products for homepage"""
+    products = models.ManyToManyField(Product, related_name='top_products', blank=True)
+
+    class Meta:
+        verbose_name = _("Top Products")
+        verbose_name_plural = _("Top Products")
+
+    def __str__(self):
+        return "Top Products List"
+    
+
+class NewArrivals(BaseModel):
+    """New arrival products for homepage"""
+    products = models.ManyToManyField(Product, related_name='new_arrivals', blank=True)
+
+    class Meta:
+        verbose_name = _("New Arrivals")
+        verbose_name_plural = _("New Arrivals")
+
+    def __str__(self):
+        return "New Arrivals List"

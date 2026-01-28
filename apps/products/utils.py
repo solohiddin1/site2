@@ -17,6 +17,7 @@ def compress_image(
         size: (width, height)
         format: WEBP / JPEG / PNG
     """
+    print(f"Compressing image {image_file.name} to size {sizes} in format {format}...")
     img = Image.open(image_file)
     img = img.convert("RGB")  # Ensure image is in RGB mode
     resized = img.resize(sizes, Image.LANCZOS)  # Resize to given sizes
@@ -58,4 +59,5 @@ def send_product_inquiry_telegram(name, phone_number, message, product_data=None
         "text": inquiry_text,
         "parse_mode": "HTML"
     }
-    requests.post(url, data=payload)
+    response = requests.post(url, data=payload)
+    return response

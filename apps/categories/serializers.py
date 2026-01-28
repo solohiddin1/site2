@@ -16,11 +16,12 @@ class CategorySimpleSerializer(TranslatableModelSerializer):
 class SubCategorySerializer(TranslatableModelSerializer):
     translations = TranslatedFieldsField(shared_model=SubCategory)
     product_count = serializers.SerializerMethodField()
-    category = CategorySimpleSerializer(read_only=True)
+    # category = CategorySimpleSerializer(read_only=True)
 
     class Meta:
         model = SubCategory
-        fields = ['id', 'translations', 'image', 'product_count', 'category']
+        fields = ['id', 'translations', 'image', 'product_count']
+        # fields = ['id', 'translations', 'image', 'product_count', 'category']
 
     def get_product_count(self, obj):
         return Product.objects.filter(subcategory=obj).count()
