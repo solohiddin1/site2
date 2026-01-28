@@ -6,10 +6,11 @@ from rest_framework.response import Response
 from rest_framework import permissions
 from .models import (Product, ProductImage, ProductLongDesc, 
                      ProductPackageContentImages, ProductUsage, 
-                     ProductSpecs, ProductSpecsTemplate, TopProduct)
+                     ProductSpecs, ProductSpecsTemplate, TopProduct, NewArrivals)
 from .utils import send_product_inquiry_telegram
 from apps.company.models import Connection
-from .serializers import ProductSerializer, ProductImageSerializer
+from .serializers import (ProductSerializer, ProductImageSerializer, 
+                         TopProductListSerializer, NewArrivalsListSerializer)
 from apps.categories.models import SubCategory
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator
@@ -166,16 +167,23 @@ class ProductImageView(APIView):
 
 
 class TopProductsView(generics.ListAPIView):
-    serializer_class = ProductSerializer
+    """List all top products ordered by ordering field"""
+    serializer_class = TopProductListSerializer
 
     def get_queryset(self):
         lang = self.request.query_params.get('lang', 'uz')
-        
-        # Get all products that are marked as top products
-        top_product_list = TopProduct.objects.first()
-        if top_product_list:
-            return top_product_list.products.language(lang).all()
-        return Product.objects.none()
+        # Get all TopProduct entries with their related products, ordered by ordering field
+        return TopProduct.objects.select_related('product').prefetch_related('product__images').all()
+
+
+class NewArrivalsView(generics.ListAPIView):
+    """List all new arrival products ordered by ordering field"""
+    serializer_class = NewArrivalsListSerializer
+
+    def get_queryset(self):
+        lang = self.request.query_params.get('lang', 'uz')
+        # Get all NewArrivals entries with their related products, ordered by ordering field
+        return NewArrivals.objects.select_related('product').prefetch_related('product__images').all()
 
 class ProductInquiryView(generics.CreateAPIView):
     """Handle product inquiry form submissions"""

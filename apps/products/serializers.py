@@ -77,6 +77,31 @@ class ProductSerializer(TranslatableModelSerializer):
     def get_related_products(self, obj):
         qs = Product.objects.filter(subcategory=obj.subcategory).exclude(id=obj.id)[:4]
         return RelatedProductSerializer(qs, many=True, context=self.context).data
+        
+    def get_package_content(self, obj):
+        qs = obj.package_content_images.all()
+        return ProductPackageContentImagesSerializer(qs, many=True, context=self.context).data
+
+class TopProductListSerializer(serializers.ModelSerializer):
+    """Serializer for listing top products with minimal data"""
+    product = RelatedProductSerializer(read_only=True)
+
+    class Meta:
+        model = TopProduct
+        fields = ['id', 'product', 'ordering']
+
+
+class NewArrivalsListSerializer(serializers.ModelSerializer):
+    """Serializer for listing new arrivals with minimal data"""
+    product = RelatedProductSerializer(read_only=True)
+
+    class Meta:
+        model = NewArrivals
+        fields = ['id', 'product', 'ordering']
+
+    def get_related_products(self, obj):
+        qs = Product.objects.filter(subcategory=obj.subcategory).exclude(id=obj.id)[:4]
+        return RelatedProductSerializer(qs, many=True, context=self.context).data
 
     def get_package_content(self, obj):
         qs = obj.package_content_images.all()

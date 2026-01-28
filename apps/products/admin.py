@@ -117,33 +117,41 @@ class ProductSpecsTemplateAdmin(TranslatableAdmin):
 
 @admin.register(TopProduct)
 class TopProductsAdmin(admin.ModelAdmin):
-    # list_display = ('product',)
-    # list_filter = ('product__subcategory')
+    list_display = ('product', 'ordering', 'created_at')
+    list_filter = ('product__subcategory',)
     search_fields = ('product__translations__name', 'product__sku')
     readonly_fields = ('created_at', 'updated_at')
-    # fieldsets = (
-    #     ('Top Product Information', {
-    #         'fields': ('product',)
-    #     }),
-        # ('Product Details', {
-        #     'fields': ('product',)
-        # }),
-        # ('Translations', {
-        #     'fields': ('name', 'description', 'slug')
-        # }),
-    # )
+    list_editable = ('ordering',)
+    ordering = ('ordering', '-created_at')
+    
+    fieldsets = (
+        ('Top Product Information', {
+            'fields': ('product', 'ordering')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
 
     
 @admin.register(NewArrivals)
 class NewArrivalsAdmin(admin.ModelAdmin):
-    list_display = ('id',)
+    list_display = ('product', 'ordering', 'created_at')
+    list_filter = ('product__subcategory',)
+    search_fields = ('product__translations__name', 'product__sku')
     readonly_fields = ('created_at', 'updated_at')
+    list_editable = ('ordering',)
+    ordering = ('ordering', '-created_at')
+    
     fieldsets = (
-        ('New Arrivals Information', {
-            'fields': ('products',)
+        ('New Arrival Information', {
+            'fields': ('product', 'ordering')
         }),
-        # ('Product Details', {
-        #     'fields': ('product',)
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
     )
 
 # @admin.register(Certificates)

@@ -224,23 +224,27 @@ class ProductSpecsTemplate(TranslatableModel, BaseModel):
 
 class TopProduct(BaseModel):
     """Featured products for homepage"""
-    products = models.ManyToManyField(Product, related_name='top_products', blank=True)
+    product = models.ForeignKey(Product, related_name='top_products', on_delete=models.CASCADE, blank=True, null=True)
+    ordering = models.PositiveIntegerField(default=0, help_text=_("Display order (lower numbers appear first)"))
 
     class Meta:
-        verbose_name = _("Top Products")
+        verbose_name = _("Top Product")
         verbose_name_plural = _("Top Products")
+        ordering = ['ordering', '-created_at']
 
     def __str__(self):
-        return "Top Products List"
+        return f"Top Product: {self.product}"
     
 
 class NewArrivals(BaseModel):
     """New arrival products for homepage"""
-    products = models.ManyToManyField(Product, related_name='new_arrivals', blank=True)
+    product = models.ForeignKey(Product, related_name='new_arrivals', on_delete=models.CASCADE, blank=True, null=True)
+    ordering = models.PositiveIntegerField(default=0, help_text=_("Display order (lower numbers appear first)"))
 
     class Meta:
-        verbose_name = _("New Arrivals")
+        verbose_name = _("New Arrival")
         verbose_name_plural = _("New Arrivals")
+        ordering = ['ordering', '-created_at']
 
     def __str__(self):
-        return "New Arrivals List"
+        return f"New Arrival: {self.product}"
