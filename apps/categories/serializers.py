@@ -20,7 +20,7 @@ class SubCategorySerializer(TranslatableModelSerializer):
 
     class Meta:
         model = SubCategory
-        fields = ['id', 'translations', 'image', 'product_count']
+        fields = ['id', 'translations', 'slug', 'image', 'product_count']
         # fields = ['id', 'translations', 'image', 'product_count', 'category']
 
     def get_product_count(self, obj):
@@ -35,7 +35,7 @@ class CategorySerializer(TranslatableModelSerializer):
 
     class Meta:
         model = Category
-        fields = ['id', 'translations', 'image', 'second_image', 'subcategories', 'subcategories_count', 'product_count']
+        fields = ['id', 'translations', 'slug', 'image', 'second_image', 'subcategories', 'subcategories_count', 'product_count']
 
     def get_subcategories(self, obj):
         qs = obj.subcategories.all()

@@ -25,17 +25,18 @@ class Category(BaseModel, TranslatableModel):
     translations = TranslatedFields(
         name=models.CharField(max_length=255),
         unique_code=models.CharField(max_length=50, default=get_unique_code, blank=True, null=True),
-        slug=models.SlugField(
-            max_length=255,
-            blank=True,
-            null=True,
-            help_text=_("URL-friendly identifier. Auto-generated from name."),
-            default=None,
-            allow_unicode=True,
-        ),
     )
     image = models.ImageField(upload_to='categories/', blank=True, null=True)
     second_image = models.ImageField(upload_to='categories/', blank=True, null=True)
+    slug = models.SlugField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text=_("URL-friendly identifier. Auto-generated from name."),
+        default=None,
+        unique=True,
+        allow_unicode=True,
+    )
 
     class Meta:
         verbose_name = _("Category")
@@ -46,6 +47,13 @@ class Category(BaseModel, TranslatableModel):
         return self.safe_translation_getter('name', any_language=True) or "Category"
 
     def save(self, *args, **kwargs):
+        # Generate slug if not present
+        if not self.slug:
+            name = self.safe_translation_getter('name', language_code='uz') or self.safe_translation_getter('name')
+            Unique_code = self.safe_translation_getter('unique_code', language_code='uz') or get_unique_code()
+            if name:
+                self.slug = slugify(f"{name}-{Unique_code}", allow_unicode=True)
+
         super().save(*args, **kwargs)
         supported_langs = {'uz', 'ru', 'en'}
         
@@ -57,7 +65,7 @@ class Category(BaseModel, TranslatableModel):
              source_context = self.translations.first()
         
         if not source_context:
-            logger.warning(f"⚠️ No translations found for {self} after save.")
+            # logger.warning(f"⚠️ No translations found for {self} after save.")
             return
 
         source_lang = source_context.language_code
@@ -67,9 +75,6 @@ class Category(BaseModel, TranslatableModel):
         need_save = False
         if not source_context.unique_code:
              source_context.unique_code = uc
-             need_save = True
-        if not source_context.slug:
-             source_context.slug = slugify(f"{source_context.name}-{uc}", allow_unicode=True)
              need_save = True
         
         if need_save:
@@ -89,15 +94,12 @@ class Category(BaseModel, TranslatableModel):
                 else:
                     translated_name = res.text
                 
-                slug_val = slugify(f"{translated_name}-{uc}", allow_unicode=True)
-
                 self.create_translation(
                     language_code=lang,
                     name=translated_name,
-                    slug=slug_val,
                     unique_code=uc 
                 )
-                logger.info(f"✅ Translated {lang}: {translated_name}-{uc}")
+                logger.info(f"✅ Translated {lang}: {translated_name}")
             except Exception as e:
                 logger.error(f"❌ Translation failed for {lang} (src: {source_lang}): {e}")
 
@@ -106,17 +108,18 @@ class SubCategory(TranslatableModel, BaseModel):
     translations = TranslatedFields(
         name=models.CharField(max_length=255),
         unique_code=models.CharField(max_length=50, default=get_unique_code, blank=True, null=True),
-        slug=models.SlugField(
-            max_length=255,
-            blank=True,
-            null=True,
-            help_text=_("URL-friendly identifier. Auto-generated from name."),
-            default=None,
-            allow_unicode=True
-        ),
     )
     category = models.ForeignKey(Category, related_name='subcategories', on_delete=models.SET_NULL, null=True, blank=True)
     image = models.ImageField(upload_to='subcategories/', blank=True, null=True)
+    slug = models.SlugField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text=_("URL-friendly identifier. Auto-generated from name."),
+        default=None,
+        unique=True,
+        allow_unicode=True
+    )
 
     class Meta:
         verbose_name = _("SubCategory")
@@ -127,6 +130,13 @@ class SubCategory(TranslatableModel, BaseModel):
         return self.safe_translation_getter('name', any_language=True) or "SubCategory"
 
     def save(self, *args, **kwargs):
+        # Generate slug if not present
+        if not self.slug:
+            name = self.safe_translation_getter('name', language_code='uz') or self.safe_translation_getter('name')
+            Unique_code = self.safe_translation_getter('unique_code', language_code='uz') or get_unique_code()
+            if name:
+                self.slug = slugify(f"{name}-{Unique_code}", allow_unicode=True)
+                
         super().save(*args, **kwargs)
         supported_langs = {'uz', 'ru', 'en'}
         
@@ -137,7 +147,7 @@ class SubCategory(TranslatableModel, BaseModel):
              source_context = self.translations.first()
         
         if not source_context:
-            logger.warning(f"⚠️ No translations found for {self} after save.")
+            # logger.warning(f"⚠️ No translations found for {self} after save.")
             return
 
         source_lang = source_context.language_code
@@ -146,9 +156,6 @@ class SubCategory(TranslatableModel, BaseModel):
         need_save = False
         if not source_context.unique_code:
              source_context.unique_code = uc
-             need_save = True
-        if not source_context.slug:
-             source_context.slug = slugify(f"{source_context.name}-{uc}", allow_unicode=True)
              need_save = True
         
         if need_save:
@@ -167,14 +174,11 @@ class SubCategory(TranslatableModel, BaseModel):
                 else:
                     translated_name = res.text
                 
-                slug_val = slugify(f"{translated_name}-{uc}", allow_unicode=True)
-
                 self.create_translation(
                     language_code=lang,
                     name=translated_name,
-                    slug=slug_val,
                     unique_code=uc 
                 )
-                logger.info(f"✅ Translated {lang}: {translated_name}-{uc}")
+                logger.info(f"✅ Translated {lang}: {translated_name}")
             except Exception as e:
                 logger.error(f"❌ Translation failed for {lang} (src: {source_lang}): {e}")

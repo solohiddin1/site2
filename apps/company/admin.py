@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from parler.admin import TranslatableAdmin
-from .models import BannerImages, Company, Partners, Banner, Connection, New, NewsImage
+from .models import BannerImages, Company, Partners, Banner, Connection, New
 
 
 @admin.register(Company)
@@ -97,24 +97,26 @@ class ConnectionAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_at'
 
 
-class NewsImageInline(admin.TabularInline):
-    model = NewsImage
-    extra = 1
-    readonly_fields = ('image_preview',)
 
-    def image_preview(self, obj):
-        if obj.image:
-            return format_html('<img src="{}" style="max-height: 100px;"/>', obj.image.url)
-        return "-"
-    image_preview.short_description = "Preview"
 
 @admin.register(New)
 class NewAdmin(TranslatableAdmin):
     list_display = ('title', 'is_active', 'published_at', 'image_preview')
     list_filter = ('is_active', 'published_at')
     readonly_fields = ('image_preview', 'created_at', 'updated_at')
-    inlines = [NewsImageInline]
+    # inlines = [NewsImageInline]
     search_fields = ('translations__title',)
+    fieldsets = (
+        ('Asosiy ma\'lumotlar', {
+            'fields': ('slug', 'is_active', 'published_at', 'new_type', 
+            'alt', 'image', 'image_preview', 
+            'created_at', 'updated_at')
+        }),
+        ('Tarjimalar', {
+            'fields': ('title', 'summary', 
+            'description')
+        })
+    )
 
     def image_preview(self, obj):
         if obj.image:

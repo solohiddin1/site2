@@ -3,7 +3,7 @@ from django.utils.html import format_html
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
 from .models import (
     NewArrivals, Product, ProductImage, ProductLongDesc, ProductSpecsTemplate, ProductUsage,
-    ProductPackageContentImages, ProductSpecs, TopProduct
+    ProductPackageContentImages, ProductSpecs, TopProduct, ProductUsageItem
 )
 from django.urls import reverse
 
@@ -24,6 +24,13 @@ class ProductImageInline(admin.TabularInline):
         return "-"
     image_preview.short_description = 'Image Preview'
 
+class ProductUsageItemInline(admin.TabularInline):
+    model = ProductUsageItem
+    extra = 0
+
+    def usage_type(self, obj):
+        return obj.usage_type
+    usage_type.short_description = 'Usage Type'
 
 class ProductSpecsInline(TranslatableTabularInline):
     model = ProductSpecs
@@ -44,7 +51,7 @@ class ProductUsageInline(TranslatableTabularInline):
 
 class ProductPackageContentImagesInline(admin.TabularInline):
     model = ProductPackageContentImages
-    extra = 0
+    extra = 1
     readonly_fields = ('image_preview',)
 
     def image_preview(self, obj):
@@ -59,6 +66,7 @@ class ProductAdmin(TranslatableAdmin):
     inlines = [
         ProductImageInline,
         ProductSpecsInline,
+        # ProductUsageItemInline,
         ProductLongDescInline,
         ProductUsageInline,
         ProductPackageContentImagesInline
@@ -69,10 +77,10 @@ class ProductAdmin(TranslatableAdmin):
     readonly_fields = ('unique_code', 'created_at', 'updated_at')
     fieldsets = (
         ('Basic Information', {
-            'fields': ('subcategory', 'sku', 'unique_code', 'warranty_months')
+            'fields': ('subcategory', 'sku', 'unique_code', 'warranty_months', 'slug')
         }),
         ('Translations', {
-            'fields': ('name', 'description', 'slug')
+            'fields': ('name', 'description')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),

@@ -22,14 +22,15 @@ class Product(TranslatableModel, BaseModel):
     translations = TranslatedFields(
         name=models.CharField(max_length=255),
         description=models.TextField(blank=True),
-        slug=models.SlugField(
-            max_length=255,
-            blank=True,
-            null=True,
-            allow_unicode=True
-        ),
     )
 
+    slug = models.SlugField(
+        max_length=255,
+        blank=True,
+        null=True,
+        allow_unicode=True,
+        unique=True
+    )
     unique_code = models.CharField(max_length=50, default=get_unique_code, blank=True, null=True)
     sku = models.CharField(max_length=100, blank=True, null=True, unique=True)
     warranty_months = models.IntegerField(blank=True, null=True, default=12)
@@ -45,20 +46,26 @@ class Product(TranslatableModel, BaseModel):
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
+        
+        # Ensure we have a slug before saving if possible, or save first then update
+        base_lang = 'uz'
+        self.set_current_language(base_lang)
+        
+        # If name is available (e.g. set on the instance), try to generate slug
+        if not self.slug and self.safe_translation_getter('name'):
+             self.slug = slugify(f"{self.safe_translation_getter('name')}-{self.unique_code}", allow_unicode=True)
+
         super().save(*args, **kwargs)
 
-        base_lang = 'uz'
         target_langs = ['en', 'ru']
 
-        self.set_current_language(base_lang)
-        if not self.slug:
-            self.slug = slugify(f"{self.name}-{self.unique_code}", allow_unicode=True)
-            super().save()
-
+        # Logic to auto-translate name/description if missing
         try:
+            # force fetch from db or cache
             base_translation = self.translations.get(language_code=base_lang)
         except Exception as e:
-            print(f"⚠️ No base translation found for {base_lang}: {e}")
+            # If we just saved it, it might be in memory? 
+            # If base translation is missing in DB, we can't translate to others.
             return
 
         for lang in target_langs:
@@ -77,13 +84,12 @@ class Product(TranslatableModel, BaseModel):
                 else:
                     translated_desc = res_desc.text
 
-                translated_slug = slugify(f"{translated_name}-{self.unique_code}", allow_unicode=True)
+                # Slug is now shared, no need to translate it.
 
                 self.create_translation(
                     language_code=lang,
                     name=translated_name,
                     description=translated_desc,
-                    slug=translated_slug
                 )
                 print(f"✅ Translated {lang}: {translated_name}")
             except Exception as e:
@@ -170,12 +176,20 @@ class ProductUsageItem(BaseModel):
         on_delete=models.CASCADE,
         verbose_name=_("Product Usage")
     )
-    type = models.CharField(max_length=16, choices=USAGE_TYPE_CHOICES)
+    usage_type = models.CharField(max_length=16, choices=USAGE_TYPE_CHOICES)
     image = models.ImageField(upload_to="products/usage/images/", blank=True, null=True)
     video = models.FileField(upload_to="products/usage/videos/", blank=True, null=True)
     youtube_url = models.URLField(blank=True, null=True)
     text = models.TextField(blank=True, null=True)
     ordering = models.PositiveIntegerField(default=0)
+    product = models.ForeignKey(
+        Product,
+        related_name='usage_items',
+        verbose_name=_("Product Usage Item"),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
 
     class Meta:
         ordering = ["ordering", "id"]
@@ -183,7 +197,7 @@ class ProductUsageItem(BaseModel):
         verbose_name_plural = _("Product Usage Items")
 
     def __str__(self):
-        return f"{self.get_type_display()} for Usage {self.usage_id}"
+        return f"{self.usage_type} for Usage {self.usage_id}"
 
 # class ProductUsageImages(BaseModel):
 #     """Multiple images per product usage with ordering"""

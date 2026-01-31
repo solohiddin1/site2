@@ -21,7 +21,7 @@ class CategoryDetailView(APIView):
     def get(self, request, slug):
         lang = request.GET.get('lang', 'uz')
         category = Category.objects.language(lang).filter(
-            translations__slug=slug,
+            slug=slug,
             translations__language_code=lang
         ).first()
 

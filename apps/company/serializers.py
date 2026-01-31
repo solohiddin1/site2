@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from parler_rest.serializers import TranslatableModelSerializer, TranslatedFieldsField
-from .models import BannerImages, Company, NewsImage, Partners, Banner, Connection, New
+from .models import BannerImages, Company, Partners, Banner, Connection, New
 from apps.categories.serializers import CategoriesWithSubcategoriesSerializer
 from apps.categories.models import Category
 
@@ -68,22 +68,11 @@ class ConnectionSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at']
 
 
-class NewsImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = NewsImage
-        fields = ['id', 'image', 'alt']
-        
 class NewsSerializer(serializers.ModelSerializer):
-    news_images = serializers.SerializerMethodField()
-
     class Meta:
         model = New
-        fields = ['id', 'title', 'summary', 'description', 'image', 'published_at', 'news_images']
-        read_only_fields = ['id', 'title', 'summary', 'published_at']
-
-    def get_news_images(self, obj):
-        images = obj.images.all()
-        return NewsImageSerializer(images, many=True, context=self.context).data
+        fields = ['id', 'title', 'slug', 'summary', 'description', 'image', 'published_at', 'new_type']
+        read_only_fields = ['id', 'title', 'slug', 'summary', 'published_at', 'new_type']
     
     # def get_news_images(self, obj):
     #     images = obj.images.all()

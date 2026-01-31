@@ -23,6 +23,7 @@ from django.shortcuts import redirect
 from django.utils.text import slugify
 from django.http import JsonResponse
 from django.conf import settings
+from apps.company.utils import get_unique_code
 import uuid
 import json
 
@@ -74,20 +75,16 @@ class ProductListView(generics.ListAPIView):
 class ProductDetailView(generics.RetrieveAPIView):
     """Get product details by slug"""
     serializer_class = ProductSerializer
-    lookup_field = 'translations__slug'
+    lookup_field = 'slug'
     lookup_url_kwarg = 'slug'
 
     def get_queryset(self):
         lang = self.request.query_params.get("lang", "uz")
-        slug = self.kwargs.get('slug')
         
-        # Filter by both slug AND language_code to avoid MultipleObjectsReturned error
         return (
             Product.objects.language(lang)
-            .filter(translations__slug=slug, translations__language_code=lang)
             .prefetch_related("specs", "images", "package_content_images", "long_desc", "usage")
             .select_related("subcategory")
-            .distinct()
         )
 
     def get_serializer_context(self):
@@ -123,8 +120,9 @@ class ProductBySubCategoryView(generics.ListAPIView):
             # translation.activate(lang)
             # translation.set_current_language(lang)
             subcat = SubCategory.objects.language(lang).filter(
-                translations__slug=slug,
-                translations__language_code=lang
+                slug=slug,
+                # language_code=lang
+                # translations__language_code=lang
             ).first()
             # subcat = SubCategory.objects.language(lang).filter(
             #     translations__slug=slug,
@@ -141,8 +139,9 @@ class ProductBySubCategoryView(generics.ListAPIView):
 
         if subcat_slug:
             subcat = SubCategory.objects.language(lang).filter(
-                translations__slug=subcat_slug,
-                translations__language_code=lang
+                slug=subcat_slug,
+                # language_code=lang
+                # translations__language_code=lang
             ).first()
             if subcat:
                 products = Product.objects.language(lang).filter(subcategory_id=subcat.id)
@@ -283,7 +282,6 @@ def create_product(request):
             product.set_current_language(lang)
             product.name = translations_data[lang]['name']
             product.description = translations_data[lang]['description']
-            product.slug = None  # Will auto-generate
         
         product.save()
 
@@ -405,11 +403,10 @@ def add_product_view(request):
                 product.set_current_language(lang)
                 product.name = translations_data[lang]['name']
                 product.description = translations_data[lang]['description']
-                # Generate slug for each language based on the translated name
-                if translations_data[lang]['name']:
+                
+                # Generate slug only for base language (uz)
+                if lang == 'uz' and translations_data[lang]['name']:
                     product.slug = slugify(f"{translations_data[lang]['name']}-{product.unique_code}", allow_unicode=True)
-                else:
-                    product.slug = None
             
             product.save()
 
@@ -505,7 +502,7 @@ def add_product_view(request):
         })
     
     # Get specs templates
-    specs_templates = ProductSpecsTemplate.objects.all().order_by('translations__name')
+    specs_templates = ProductSpecsTemplate.objects.all()
     templates_list = []
     for tmpl in specs_templates:
         tmpl.set_current_language('uz')
@@ -553,13 +550,20 @@ def list_products_view(request):
     products_page = paginator.get_page(page_number)
     
     # Get categories for filter
-    categories = Category.objects.all()
+    # Get categories for filter
+    categories = Category.objects.prefetch_related('subcategories').all()
     categories_list = []
     for cat in categories:
         cat.set_current_language('uz')
+        subcats = []
+        for sub in cat.subcategories.all():
+             sub.set_current_language('uz')
+             subcats.append({'id': sub.id, 'name': sub.name})
+             
         categories_list.append({
             'id': cat.id,
-            'name': cat.name
+            'name': cat.name,
+            'subcategories': subcats
         })
     
     context = {
@@ -601,6 +605,99 @@ def delete_package_image_view(request, package_id):
     return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
 
 @staff_member_required
+def duplicate_product_view(request, product_id):
+    """
+    Duplicate a product and all its related data
+    """
+    try:
+        # Get source product
+        src = get_object_or_404(Product, id=product_id)
+        
+        # Create basic product copy
+        new_product = Product(
+            sku=get_unique_code(),
+            warranty_months=src.warranty_months,
+            subcategory_id=src.subcategory_id,
+            unique_code=get_unique_code()
+        )
+        new_product.save()
+        print(new_product, 'new_product')
+        
+        # Copy translations
+        for lang in ['uz', 'en', 'ru']:
+            src.set_current_language(lang)
+            if src.has_translation(lang):
+                new_product.set_current_language(lang)
+                new_product.name = src.name + " (Copy)" if lang == 'uz' else src.name
+                new_product.description = src.description
+                # Generate new slug
+                if lang == 'uz':
+                    new_product.slug = slugify(f"{new_product.name}-{new_product.unique_code}", allow_unicode=True)
+        new_product.save()
+
+        # Copy Images
+        for img in src.images.all():
+            ProductImage.objects.create(
+                product=new_product,
+                image=img.image,
+                alt=img.alt,
+                ordering=img.ordering
+            )
+
+        # Copy Specs
+        try:
+            src_specs = ProductSpecs.objects.get(product=src)
+            new_specs = ProductSpecs(product=new_product)
+            for lang in ['uz', 'en', 'ru']:
+                src_specs.set_current_language(lang)
+                if src_specs.has_translation(lang):
+                    new_specs.set_current_language(lang)
+                    new_specs.specs = src_specs.specs
+            new_specs.save()
+        except ProductSpecs.DoesNotExist:
+            pass
+
+        # Copy Long Description
+        try:
+            src_desc = ProductLongDesc.objects.get(product=src)
+            new_desc = ProductLongDesc(product=new_product)
+            for lang in ['uz', 'en', 'ru']:
+                src_desc.set_current_language(lang)
+                if src_desc.has_translation(lang):
+                    new_desc.set_current_language(lang)
+                    new_desc.long_desc = src_desc.long_desc
+            new_desc.save()
+        except ProductLongDesc.DoesNotExist:
+            pass
+
+        # Copy Usage
+        try:
+            src_usage = ProductUsage.objects.get(product=src)
+            new_usage = ProductUsage(product=new_product)
+            for lang in ['uz', 'en', 'ru']:
+                src_usage.set_current_language(lang)
+                if src_usage.has_translation(lang):
+                    new_usage.set_current_language(lang)
+                    new_usage.usage = src_usage.usage
+            new_usage.save()
+        except ProductUsage.DoesNotExist:
+            pass
+
+        # Copy Package Images
+        for pkg_img in src.package_content_images.all():
+            ProductPackageContentImages.objects.create(
+                product=new_product,
+                image=pkg_img.image
+            )
+
+        messages.success(request, 'Mahsulot muvaffaqiyatli nusxalandi!')
+        return redirect('products:edit_product', product_id=new_product.id)
+
+    except Exception as e:
+        messages.error(request, f'Nusxalashda xatolik: {str(e)}')
+        return redirect('products:list_products')
+
+
 def edit_product_view(request, product_id):
     """
     Edit existing product - only accessible by admin staff
@@ -615,8 +712,9 @@ def edit_product_view(request, product_id):
                 name = request.POST.get(f'name_{lang}', '')
                 product.name = name
                 product.description = request.POST.get(f'description_{lang}', '')
-                # Regenerate slug for each language based on updated name
-                if name:
+                
+                # Regenerate slug only if uz name changes
+                if lang == 'uz' and name:
                     product.slug = slugify(f"{name}-{product.unique_code}", allow_unicode=True)
             
             # Update basic fields
@@ -746,7 +844,7 @@ def edit_product_view(request, product_id):
         })
     
     # Get specs templates
-    specs_templates = ProductSpecsTemplate.objects.all().order_by('translations__name')
+    specs_templates = ProductSpecsTemplate.objects.all()
     templates_list = []
     for tmpl in specs_templates:
         tmpl.set_current_language('uz')

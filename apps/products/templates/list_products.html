@@ -365,8 +365,8 @@
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
                         <i class="fas fa-search mr-2"></i>Qidirish
                     </label>
-                    <input type="text" name="search" value="{{ search_query }}" 
-                        placeholder="Mahsulot nomi, SKU yoki kod..." 
+                    <input type="text" name="search" value="{{ search_query }}"
+                        placeholder="Mahsulot nomi, SKU yoki kod..."
                         class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
                 </div>
 
@@ -392,9 +392,9 @@
                                 </strong>
                             </div>
                             <div class="subcategories-list hidden ml-4" data-parent-category="{{ cat.id }}">
-                                {% for sub in cat.subcategories.all %}
-                                <div class="subcategory-item" data-category-id="{{ cat.id }}" 
-                                     onclick="selectCategory(this, '{{ cat.id }}')">
+                                {% for sub in cat.subcategories %}
+                                <div class="subcategory-item" data-category-id="{{ cat.id }}"
+                                    onclick="selectCategory(this, '{{ cat.id }}')">
                                     <i class="fas fa-circle-dot mr-2" style="font-size: 0.6rem;"></i>{{ sub.name }}
                                 </div>
                                 {% endfor %}
@@ -430,14 +430,14 @@
                 <!-- Product Image -->
                 <div class="product-image">
                     {% if product.images.first %}
-                        <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" loading="lazy">
+                    <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" loading="lazy">
                     {% else %}
-                        <div class="image-placeholder">
-                            <div class="text-center">
-                                <i class="fas fa-image text-4xl mb-2"></i>
-                                <p class="text-sm">Rasm yo'q</p>
-                            </div>
+                    <div class="image-placeholder">
+                        <div class="text-center">
+                            <i class="fas fa-image text-4xl mb-2"></i>
+                            <p class="text-sm">Rasm yo'q</p>
                         </div>
+                    </div>
                     {% endif %}
                 </div>
 
@@ -447,13 +447,13 @@
                     <div class="flex justify-between items-start mb-3 gap-2">
                         <h3 class="product-name flex-1">{{ product.name }}</h3>
                         {% if product.images.count > 0 %}
-                            <span class="badge badge-success">
-                                <i class="fas fa-image mr-1"></i>{{ product.images.count }}
-                            </span>
+                        <span class="badge badge-success">
+                            <i class="fas fa-image mr-1"></i>{{ product.images.count }}
+                        </span>
                         {% else %}
-                            <span class="badge badge-warning">
-                                <i class="fas fa-exclamation-triangle mr-1"></i>Yo'q
-                            </span>
+                        <span class="badge badge-warning">
+                            <i class="fas fa-exclamation-triangle mr-1"></i>Yo'q
+                        </span>
                         {% endif %}
                     </div>
 
@@ -470,31 +470,31 @@
                         <span class="font-mono text-xs bg-white px-2 py-1 rounded">
                             {{ product.sku|default:"—" }}
                         </span>
-                        
+
                         <strong>Kod:</strong>
                         <span class="font-mono text-xs bg-white px-2 py-1 rounded">
                             {% if product.unique_code %}
-                                {{ product.unique_code }}
+                            {{ product.unique_code }}
                             {% else %}
-                                —
+                            —
                             {% endif %}
                         </span>
 
                         <strong>Kategoriya:</strong>
                         <span class="text-xs">
                             {% if product.subcategory %}
-                                {{ product.subcategory.name }}
+                            {{ product.subcategory.name }}
                             {% else %}
-                                —
+                            —
                             {% endif %}
                         </span>
 
                         <strong>Kafolat:</strong>
                         <span class="text-xs">
                             {% if product.warranty_months %}
-                                {{ product.warranty_months }} oy
+                            {{ product.warranty_months }} oy
                             {% else %}
-                                —
+                            —
                             {% endif %}
                         </span>
                     </div>
@@ -504,9 +504,10 @@
                         <a href="{% url 'products:edit_product' product.id %}" class="btn-edit flex-1">
                             <i class="fas fa-edit"></i>Tahrirlash
                         </a>
-                        <button class="btn-small" onclick="copyProductCode('{{ product.unique_code }}')">
+                        <a href="{% url 'products:duplicate_product' product.id %}" class="btn-small"
+                            onclick="return confirm('Haqiqatan ham ushbu mahsulot nusxasini yaratmoqchimisiz?')">
                             <i class="fas fa-copy"></i>Nusxa
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -529,28 +530,28 @@
                 {% endif %}
 
                 {% for num in products.paginator.page_range %}
-                    {% if products.number == num %}
-                    <span class="px-4 py-2 font-semibold text-white bg-red-600 rounded-lg">
-                        {{ num }}
-                    </span>
-                    {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
-                    <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}"
-                        class="btn-secondary p-2">
-                        {{ num }}
+                {% if products.number == num %}
+                <span class="px-4 py-2 font-semibold text-white bg-red-600 rounded-lg">
+                    {{ num }}
+                </span>
+                {% elif num > products.number|add:'-3' and num < products.number|add:'3' %} <a
+                    href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}"
+                    class="btn-secondary p-2">
+                    {{ num }}
                     </a>
                     {% endif %}
-                {% endfor %}
+                    {% endfor %}
 
-                {% if products.has_next %}
-                <a href="?page={{ products.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}"
-                    class="btn-secondary p-2">
-                    <i class="fas fa-chevron-right"></i>
-                </a>
-                <a href="?page={{ products.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}"
-                    class="btn-secondary p-2">
-                    <i class="fas fa-chevron-right"></i><i class="fas fa-chevron-right"></i>
-                </a>
-                {% endif %}
+                    {% if products.has_next %}
+                    <a href="?page={{ products.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}"
+                        class="btn-secondary p-2">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                    <a href="?page={{ products.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}"
+                        class="btn-secondary p-2">
+                        <i class="fas fa-chevron-right"></i><i class="fas fa-chevron-right"></i>
+                    </a>
+                    {% endif %}
             </nav>
         </div>
         {% endif %}
@@ -585,7 +586,7 @@
             const category = element.parentElement;
             const categoryId = category.querySelector('[data-parent-category]')?.getAttribute('data-parent-category');
             const subList = category.parentElement.querySelector(`.subcategories-list[data-parent-category="${categoryId}"]`);
-            
+
             if (subList) {
                 subList.classList.toggle('hidden');
                 icon.style.transform = subList.classList.contains('hidden') ? 'rotate(0)' : 'rotate(90deg)';
@@ -611,7 +612,7 @@
         }
 
         // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', function (event) {
             const dropdown = document.getElementById('categoryDropdown');
             if (!dropdown.contains(event.target)) {
                 dropdown.classList.remove('active');
@@ -620,7 +621,7 @@
         });
 
         // Initialize category dropdown with selected value
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const selectedCategory = '{{ selected_category }}';
             if (selectedCategory) {
                 const item = document.querySelector(`[data-category-id="${selectedCategory}"]`);

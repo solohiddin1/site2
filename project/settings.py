@@ -32,7 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'drf_yasg',
-    'drf_spectacular',
+    # 'drf_spectacular',
     # New modular apps
     'apps.categories',
     'apps.products',

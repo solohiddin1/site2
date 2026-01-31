@@ -129,7 +129,25 @@ class NewsListView(generics.ListAPIView):
             # ],
             parameters=ACCEPT_LANGUAGE_HEADER,
             description="Retrieve a list of all news articles.")
+    
     def get_queryset(self):
         # lang = self.request.query_params.get('language', 'uz')
         lang = self.request.GET.get('language', 'uz')
         return New.objects.filter(is_active=True).language(lang).distinct()
+
+
+class NewsDetailView(generics.RetrieveAPIView):
+    """Retrieve a specific news article by slug"""
+    serializer_class = NewsSerializer
+    permission_classes = [AllowAny]
+    lookup_field = 'slug'
+    
+    @extend_schema(
+            summary="Retrieve News Article", 
+            parameters=ACCEPT_LANGUAGE_HEADER,
+            description="Retrieve a specific news article by its slug.")
+    
+    def get_queryset(self):
+        lang = self.request.GET.get('language', 'uz')
+        new = New.objects.filter(is_active=True, slug=self.kwargs['slug']).language(lang).distinct()
+        return new

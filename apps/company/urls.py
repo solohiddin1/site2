@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CompanyView, NewsListView, PartnersView, BannerView, ConnectWithUsView
+from .views import CompanyView, NewsDetailView, NewsListView, PartnersView, BannerView, ConnectWithUsView
 
 app_name = 'company'
 
@@ -10,4 +10,5 @@ urlpatterns = [
     path('connect/', ConnectWithUsView.as_view(), name='connect-with-us'),
     path('connect_with_us/', ConnectWithUsView.as_view(), name='connect_with_us'),
     path('news/', NewsListView.as_view(), name='news-list'),
+    path('news/<path:slug>/', NewsDetailView.as_view(), name='news-detail'),
 ]

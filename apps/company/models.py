@@ -135,34 +135,26 @@ class Connection(BaseModel):
     def __str__(self):
         return f"{self.name} - {self.phone_number}"
 
-class NewsImage(BaseModel):
-    """Images for news articles"""
-    news = models.ForeignKey('New', related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='news/images/', blank=True, null=True)
-    alt = models.CharField(max_length=255, blank=True)
 
-    class Meta:
-        verbose_name = _("News Image")
-        verbose_name_plural = _("News Images")
-        ordering = ['id']
-
-    def __str__(self):
-        return f"Image {self.pk} for News {self.news_id}"
-    
 
 class New(BaseModel, TranslatableModel):
+    news_type = (
+        ('news_product', 'Yangi mahsulot'),
+        ('event', 'Tadbir'),
+    )
     """News model"""
     translations = TranslatedFields(
         title=models.CharField(max_length=255, blank=True, null=True),
         summary=models.TextField(blank=True, null=True),
         description=models.TextField(blank=True, null=True),
-        slug = models.SlugField(max_length=255, unique=True, blank=True, null=True),
     )
+    slug = models.SlugField(max_length=255, unique=True, blank=True, null=True)
     image = models.ImageField(upload_to='news/', blank=True, null=True)
     alt = models.CharField(max_length=255, blank=True)
     is_active = models.BooleanField(default=True)
     published_at = models.DateTimeField(blank=True, null=True)
-    
+    new_type = models.CharField(max_length=255, choices=news_type , default='event')    
+ 
     class Meta:
         verbose_name = _("News")
         verbose_name_plural = _("News")

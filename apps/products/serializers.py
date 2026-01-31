@@ -52,7 +52,7 @@ class RelatedProductSerializer(TranslatableModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['id', 'translations', 'sku', 'images']
+        fields = ['id', 'translations', 'slug', 'sku', 'images']
 
 
 class ProductSerializer(TranslatableModelSerializer):
@@ -69,7 +69,7 @@ class ProductSerializer(TranslatableModelSerializer):
     class Meta:
         model = Product
         fields = [
-            'id', 'translations', 'sku', 'warranty_months', 'package_content',
+            'id', 'translations', 'slug', 'sku', 'warranty_months', 'package_content',
             'images', 'specs', 'usage', 'subcategory',
             'related_products', 'long_desc'
         ]
