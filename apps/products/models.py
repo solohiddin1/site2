@@ -131,12 +131,13 @@ class ProductLongDesc(TranslatableModel, BaseModel):
         return f"Long Desc for {self.product}"
 
 
+
+# --- ProductUsage and ProductUsageItem for flexible usage content ---
 class ProductUsage(TranslatableModel, BaseModel):
-    """Usage instructions for products"""
+    """Usage instructions for products (container for usage items)"""
     translations = TranslatedFields(
         usage=models.TextField(blank=True, null=True)
     )
-
     product = models.ForeignKey(
         Product,
         related_name='usage',
@@ -153,6 +154,49 @@ class ProductUsage(TranslatableModel, BaseModel):
     def __str__(self):
         return f"Usage for {self.product}"
 
+
+class ProductUsageItem(BaseModel):
+    """Flexible usage item: image, video, YouTube link, or text"""
+    USAGE_TYPE_CHOICES = [
+        ("image", "Image"),
+        ("video", "Video"),
+        ("youtube", "YouTube Link"),
+        ("text", "Text"),
+    ]
+
+    usage = models.ForeignKey(
+        ProductUsage,
+        related_name="items",
+        on_delete=models.CASCADE,
+        verbose_name=_("Product Usage")
+    )
+    type = models.CharField(max_length=16, choices=USAGE_TYPE_CHOICES)
+    image = models.ImageField(upload_to="products/usage/images/", blank=True, null=True)
+    video = models.FileField(upload_to="products/usage/videos/", blank=True, null=True)
+    youtube_url = models.URLField(blank=True, null=True)
+    text = models.TextField(blank=True, null=True)
+    ordering = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["ordering", "id"]
+        verbose_name = _("Product Usage Item")
+        verbose_name_plural = _("Product Usage Items")
+
+    def __str__(self):
+        return f"{self.get_type_display()} for Usage {self.usage_id}"
+
+# class ProductUsageImages(BaseModel):
+#     """Multiple images per product usage with ordering"""
+#     product_usage = models.ForeignKey(ProductUsage, related_name='images', on_delete=models.SET_NULL, null=True, blank=True)
+#     image = models.ImageField(upload_to='products/usage/', blank=True, null=True)
+#     ordering = models.PositiveIntegerField(default=0)
+
+#     def __str__(self):
+#         return f"Image for {self.product_usage}"
+
+#     class Meta:
+#         verbose_name = _("Product Usage Image")
+#         verbose_name_plural = _("Product Usage Images")
 
 class ProductPackageContentImages(TranslatableModel, BaseModel):
     """Package content images for products"""
