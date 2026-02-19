@@ -1,6 +1,6 @@
 from django.contrib import admin
 from parler.admin import TranslatableAdmin
-from .models import City, ServiceLocation, ServiceCenterDescription, Store
+from .models import City, ServiceLocation, ServiceCenterDescription, Store, Contacts
 
 
 # class ServiceLocationInline(admin.TabularInline):
@@ -54,3 +54,23 @@ class StoreAdmin(TranslatableAdmin):
     #         'fields': ('name', 'address', 'phone', 'email', 'map_url')
     #     }),
     # )
+
+@admin.register(Contacts)
+class ContactAdmin(TranslatableAdmin):
+    fieldsets = (
+        ('Tarjimalar', {
+            'fields': ('name', 'address')
+        }),
+        ('Contact', {
+            'fields': ('phone_number', 'email')
+        }),
+        ('Location', {
+            'fields': ('lat', 'long')
+        }),
+        ('Working hours', {
+            'fields': ('start_day', 'end_day', 'start_time', 'end_time')
+        }),
+    )
+    list_display = ('name', 'phone_number', 'created_at')
+    search_fields = ('name', 'phone_number')
+    ordering = ('-created_at',)

@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     'apps.products',
     'apps.company',
     'apps.services',
+    'apps.shared',
+
     # 'app',
     # Third-party apps
     'rest_framework',

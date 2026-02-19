@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CityListView, ServiceLocationListView, ServiceCenterDescriptionListView, StoreListView
+from .views import CityListView, ServiceLocationListView, ServiceCenterDescriptionListView, StoreListView, ContactsListView
 
 app_name = 'services'
 
@@ -8,4 +8,5 @@ urlpatterns = [
     # path('locations/', ServiceLocationListView.as_view(), name='service-locations'),
     # path('descriptions/', ServiceCenterDescriptionListView.as_view(), name='service-descriptions'),
     path('stores/', StoreListView.as_view(), name='store-list'),
+    path('contacts/', ContactsListView.as_view(), name='contacts-list'),
 ]

@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from parler_rest.serializers import TranslatableModelSerializer, TranslatedFieldsField
 from .models import (
-    Product, ProductImage, ProductLongDesc, ProductUsage,
-    ProductPackageContentImages, ProductSpecs, TopProduct, NewArrivals
+    Product, ProductImage, ProductLongDesc, 
+    ProductPackageContentImages, ProductSpecs, TopProduct, NewArrivals, 
+    ProductUsageItem
 )
 from apps.categories.serializers import SubCategorySerializer
 
@@ -37,14 +38,6 @@ class ProductSpecsSerializer(TranslatableModelSerializer):
         fields = ['id', 'product', 'translations']
 
 
-class ProductUsageSerializer(TranslatableModelSerializer):
-    translations = TranslatedFieldsField(shared_model=ProductUsage)
-
-    class Meta:
-        model = ProductUsage
-        fields = ('id', 'product', 'translations')
-
-
 class RelatedProductSerializer(TranslatableModelSerializer):
     """Simplified product serializer for related products"""
     translations = TranslatedFieldsField(shared_model=Product)
@@ -54,6 +47,13 @@ class RelatedProductSerializer(TranslatableModelSerializer):
         model = Product
         fields = ['id', 'translations', 'slug', 'sku', 'images']
 
+class ProductUsageItemSerializer(serializers.ModelSerializer):
+    translations = TranslatedFieldsField(shared_model=ProductUsageItem)
+
+    class Meta:
+        model = ProductUsageItem
+        fields = ['id', 'media_type', 'file', 'product', 'ordering', 'external_url', 'translations']
+
 
 class ProductSerializer(TranslatableModelSerializer):
     """Full product serializer with all related data"""
@@ -62,16 +62,16 @@ class ProductSerializer(TranslatableModelSerializer):
     long_desc = ProductLongDescSerializer(many=True, read_only=True)
     translations = TranslatedFieldsField(shared_model=Product)
     specs = ProductSpecsSerializer(many=True, read_only=True)
-    usage = ProductUsageSerializer(many=True, read_only=True)
     subcategory = SubCategorySerializer(read_only=True)
     images = ProductImageSerializer(many=True, read_only=True)
+    usage_media = ProductUsageItemSerializer(many=True, read_only=True)
 
     class Meta:
         model = Product
         fields = [
             'id', 'translations', 'slug', 'sku', 'warranty_months', 'package_content',
-            'images', 'specs', 'usage', 'subcategory',
-            'related_products', 'long_desc'
+            'images', 'specs', 'subcategory',
+            'related_products', 'long_desc', 'usage_media'
         ]
 
     def get_related_products(self, obj):

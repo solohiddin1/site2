@@ -138,79 +138,6 @@ class ProductLongDesc(TranslatableModel, BaseModel):
 
 
 
-# --- ProductUsage and ProductUsageItem for flexible usage content ---
-class ProductUsage(TranslatableModel, BaseModel):
-    """Usage instructions for products (container for usage items)"""
-    translations = TranslatedFields(
-        usage=models.TextField(blank=True, null=True)
-    )
-    product = models.ForeignKey(
-        Product,
-        related_name='usage',
-        verbose_name=_("Product Usage"),
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
-    )
-
-    class Meta:
-        verbose_name = _("Product Usage")
-        verbose_name_plural = _("Product Usages")
-
-    def __str__(self):
-        return f"Usage for {self.product}"
-
-
-class ProductUsageItem(BaseModel):
-    """Flexible usage item: image, video, YouTube link, or text"""
-    USAGE_TYPE_CHOICES = [
-        ("image", "Image"),
-        ("video", "Video"),
-        ("youtube", "YouTube Link"),
-        ("text", "Text"),
-    ]
-
-    usage = models.ForeignKey(
-        ProductUsage,
-        related_name="items",
-        on_delete=models.CASCADE,
-        verbose_name=_("Product Usage")
-    )
-    usage_type = models.CharField(max_length=16, choices=USAGE_TYPE_CHOICES)
-    image = models.ImageField(upload_to="products/usage/images/", blank=True, null=True)
-    video = models.FileField(upload_to="products/usage/videos/", blank=True, null=True)
-    youtube_url = models.URLField(blank=True, null=True)
-    text = models.TextField(blank=True, null=True)
-    ordering = models.PositiveIntegerField(default=0)
-    product = models.ForeignKey(
-        Product,
-        related_name='usage_items',
-        verbose_name=_("Product Usage Item"),
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
-    )
-
-    class Meta:
-        ordering = ["ordering", "id"]
-        verbose_name = _("Product Usage Item")
-        verbose_name_plural = _("Product Usage Items")
-
-    def __str__(self):
-        return f"{self.usage_type} for Usage {self.usage_id}"
-
-# class ProductUsageImages(BaseModel):
-#     """Multiple images per product usage with ordering"""
-#     product_usage = models.ForeignKey(ProductUsage, related_name='images', on_delete=models.SET_NULL, null=True, blank=True)
-#     image = models.ImageField(upload_to='products/usage/', blank=True, null=True)
-#     ordering = models.PositiveIntegerField(default=0)
-
-#     def __str__(self):
-#         return f"Image for {self.product_usage}"
-
-#     class Meta:
-#         verbose_name = _("Product Usage Image")
-#         verbose_name_plural = _("Product Usage Images")
 
 class ProductPackageContentImages(TranslatableModel, BaseModel):
     """Package content images for products"""
@@ -306,3 +233,43 @@ class NewArrivals(BaseModel):
 
     def __str__(self):
         return f"New Arrival: {self.product}"
+
+
+
+class ProductUsageItem(TranslatableModel, BaseModel):
+    """Flexible usage item: handles image, video, or social links"""
+    
+    # We keep the translations here if the client wants 
+    # specific captions for each video/image
+    translations = TranslatedFields(
+        caption=models.CharField(max_length=255, blank=True, null=True),
+    )
+
+    product = models.ForeignKey(
+        Product,
+        related_name='usage_media', # Changed for clarity
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True
+    )
+
+    # The 'Source' determines which field below is used
+    MEDIA_TYPE_CHOICES = [
+        ("image", "Image Upload"),
+        ("video", "Video Upload"),
+        ("external", "Link (YouTube/Instagram)"),
+    ]
+    media_type = models.CharField(max_length=16, choices=MEDIA_TYPE_CHOICES, default="image")
+    
+    # The actual data fields
+    file = models.FileField(upload_to="products/usage/", blank=True, null=True, help_text="Upload image or video file")
+    external_url = models.URLField(blank=True, null=True, help_text="YouTube yoki Instagram ning url linkini kiriting")
+    
+    ordering = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["ordering"]
+        verbose_name = _("Product Usage Media")
+
+    def __str__(self):
+        return f"{self.media_type} for {self.product.name}"

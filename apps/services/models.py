@@ -19,6 +19,8 @@ class Store(BaseModel, TranslatableModel):
     phone = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     map_url = models.URLField(max_length=2000, blank=True, null=True)
+    lat = models.CharField(max_length=50, blank=True, null=True)
+    long = models.CharField(max_length=50, blank=True, null=True)
     
     class Meta:
         verbose_name = _("Store")
@@ -113,3 +115,67 @@ class ServiceLocation(BaseModel):
 
     def __str__(self):
         return f"{self.city.name} Service Center"
+
+
+class Contacts(BaseModel, TranslatableModel):
+    """Contact info for the company"""
+
+    START_DAY = (
+        ('DUSHANBA', 'Dushanba'),
+        ('SESHANBA', 'Seshanba'),
+        ('CHORSHANBA', 'Chorshanba'),
+        ('PAYSHANBA', 'Payshanba'),
+        ('JUMA', 'Juma'),
+        ('SHANBA', 'Shanba'),
+        ('YAKSHANBA', 'Yakshanba'),
+    )
+
+    END_DAY = START_DAY
+    
+    START_TIME = (
+        ('00:00', '00:00'),
+        ('01:00', '01:00'),
+        ('02:00', '02:00'),
+        ('03:00', '03:00'),
+        ('04:00', '04:00'),
+        ('05:00', '05:00'),
+        ('06:00', '06:00'),
+        ('07:00', '07:00'),
+        ('08:00', '08:00'),
+        ('09:00', '09:00'),
+        ('10:00', '10:00'),
+        ('11:00', '11:00'),
+        ('12:00', '12:00'),
+        ('13:00', '13:00'),
+        ('14:00', '14:00'),
+        ('15:00', '15:00'),
+        ('16:00', '16:00'),
+        ('17:00', '17:00'),
+        ('18:00', '18:00'),
+        ('19:00', '19:00'),
+        ('20:00', '20:00'),
+        ('21:00', '21:00'),
+        ('22:00', '22:00'),
+        ('23:00', '23:00'),
+    )
+    END_TIME = START_TIME
+    
+    translations = TranslatedFields(
+        name=models.CharField(max_length=255, blank=True, null=True),
+        address=models.CharField(max_length=255, blank=True, null=True),
+    )
+    phone_number = models.CharField(max_length=50, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    lat = models.CharField(max_length=50, blank=True, null=True)
+    long = models.CharField(max_length=50, blank=True, null=True)
+    start_day = models.CharField(max_length=20, choices=START_DAY, blank=True, null=True)
+    end_day = models.CharField(max_length=20, choices=END_DAY, blank=True, null=True)
+    start_time = models.CharField(max_length=5, choices=START_TIME, blank=True, null=True)
+    end_time = models.CharField(max_length=5, choices=END_TIME, blank=True, null=True)
+
+    class Meta:
+        verbose_name = _("Contact")
+        verbose_name_plural = _("Contacts")
+
+    def __str__(self):
+        return self.safe_translation_getter('address', any_language=True) or "Contact"

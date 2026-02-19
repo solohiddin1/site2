@@ -2,8 +2,9 @@ from django.contrib import admin
 from django.utils.html import format_html
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
 from .models import (
-    NewArrivals, Product, ProductImage, ProductLongDesc, ProductSpecsTemplate, ProductUsage,
-    ProductPackageContentImages, ProductSpecs, TopProduct, ProductUsageItem
+    NewArrivals, Product, ProductImage, ProductLongDesc, ProductSpecsTemplate,
+    ProductPackageContentImages, ProductSpecs, TopProduct, 
+    ProductUsageItem
 )
 from django.urls import reverse
 
@@ -27,10 +28,7 @@ class ProductImageInline(admin.TabularInline):
 class ProductUsageItemInline(admin.TabularInline):
     model = ProductUsageItem
     extra = 0
-
-    def usage_type(self, obj):
-        return obj.usage_type
-    usage_type.short_description = 'Usage Type'
+    # fields = ('media_type', 'file', 'ordering', 'translations__caption')
 
 class ProductSpecsInline(TranslatableTabularInline):
     model = ProductSpecs
@@ -41,12 +39,6 @@ class ProductLongDescInline(TranslatableTabularInline):
     model = ProductLongDesc
     extra = 0
     fields = ('long_desc',)
-
-
-class ProductUsageInline(TranslatableTabularInline):
-    model = ProductUsage
-    extra = 0
-    fields = ('usage',)
 
 
 class ProductPackageContentImagesInline(admin.TabularInline):
@@ -66,9 +58,8 @@ class ProductAdmin(TranslatableAdmin):
     inlines = [
         ProductImageInline,
         ProductSpecsInline,
-        # ProductUsageItemInline,
+        ProductUsageItemInline,
         ProductLongDescInline,
-        ProductUsageInline,
         ProductPackageContentImagesInline
     ]
     list_display = ('name', 'sku', 'subcategory', 'warranty_months', 'id')
@@ -161,6 +152,26 @@ class NewArrivalsAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+@admin.register(ProductUsageItem)
+class ProductUsageItemAdmin(admin.ModelAdmin):
+    list_display = ('product', 'media_type', 'created_at')
+    list_filter = ('product__subcategory',)
+    search_fields = ('product__translations__name', 'product__sku')
+    readonly_fields = ('created_at', 'updated_at')
+    # list_editable = ('ordering',)
+    ordering = ('ordering', '-created_at')
+    
+    fieldsets = (
+        ('Product Usage Item Information', {
+            'fields': ('product', 'media_type', 'file', 'external_url')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
 
 # @admin.register(Certificates)
 # class CertificatesAdmin(admin.ModelAdmin):

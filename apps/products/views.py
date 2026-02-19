@@ -1,3 +1,6 @@
+import uuid
+import json
+
 from django.db.models import Q
 from rest_framework import generics
 from rest_framework.views import APIView
@@ -5,16 +8,16 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import permissions
 from .models import (Product, ProductImage, ProductLongDesc, 
-                     ProductPackageContentImages, ProductUsage, 
-                     ProductSpecs, ProductSpecsTemplate, TopProduct, NewArrivals)
+                     ProductPackageContentImages,
+                     ProductSpecs, ProductSpecsTemplate, 
+                     TopProduct, NewArrivals, ProductUsageItem
+                     )
 from .utils import send_product_inquiry_telegram
 from apps.company.models import Connection
 from .serializers import (ProductSerializer, ProductImageSerializer, 
                          TopProductListSerializer, NewArrivalsListSerializer)
-from apps.categories.models import SubCategory
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator
-from apps.categories.models import Category
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from django.utils import translation
@@ -23,9 +26,10 @@ from django.shortcuts import redirect
 from django.utils.text import slugify
 from django.http import JsonResponse
 from django.conf import settings
+
+from apps.categories.models import SubCategory
+from apps.categories.models import Category
 from apps.company.utils import get_unique_code
-import uuid
-import json
 
 
 class ProductListView(generics.ListAPIView):
@@ -83,7 +87,7 @@ class ProductDetailView(generics.RetrieveAPIView):
         
         return (
             Product.objects.language(lang)
-            .prefetch_related("specs", "images", "package_content_images", "long_desc", "usage")
+            .prefetch_related("specs", "images", "package_content_images", "long_desc", "usage_media")
             .select_related("subcategory")
         )
 
@@ -331,7 +335,7 @@ def create_product(request):
                 usage_data[lang] = usage
 
         if usage_data:
-            product_usage = ProductUsage(product=product)
+            product_usage = ProductUsageItem(product=product)
             for lang, text in usage_data.items():
                 product_usage.set_current_language(lang)
                 product_usage.usage = text
@@ -672,15 +676,15 @@ def duplicate_product_view(request, product_id):
 
         # Copy Usage
         try:
-            src_usage = ProductUsage.objects.get(product=src)
-            new_usage = ProductUsage(product=new_product)
+            src_usage = ProductUsageItem.objects.get(product=src)
+            new_usage = ProductUsageItem(product=new_product)
             for lang in ['uz', 'en', 'ru']:
                 src_usage.set_current_language(lang)
                 if src_usage.has_translation(lang):
                     new_usage.set_current_language(lang)
                     new_usage.usage = src_usage.usage
             new_usage.save()
-        except ProductUsage.DoesNotExist:
+        except ProductUsageItem.DoesNotExist:
             pass
 
         # Copy Package Images
@@ -761,7 +765,7 @@ def edit_product_view(request, product_id):
             for lang in ['uz', 'en', 'ru']:
                 usage = request.POST.get(f'usage_{lang}', '')
                 if usage:
-                    product_usage, created = ProductUsage.objects.get_or_create(product=product)
+                    product_usage, created = ProductUsageItem.objects.get_or_create(product=product)
                     product_usage.set_current_language(lang)
                     product_usage.usage = usage
                     product_usage.save()
@@ -805,11 +809,11 @@ def edit_product_view(request, product_id):
     # Get usage
     usage = {'uz': '', 'en': '', 'ru': ''}
     try:
-        product_usage = ProductUsage.objects.get(product=product)
+        product_usage = ProductUsageItem.objects.get(product=product)
         for lang in ['uz', 'en', 'ru']:
             product_usage.set_current_language(lang)
             usage[lang] = product_usage.usage
-    except ProductUsage.DoesNotExist:
+    except ProductUsageItem.DoesNotExist:
         pass
     
     # Get specs
