@@ -124,7 +124,7 @@ class ProductLongDesc(TranslatableModel, BaseModel):
         Product,
         related_name='long_desc',
         verbose_name=_("Product Long Description"),
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
         blank=True
     )
@@ -149,7 +149,7 @@ class ProductPackageContentImages(TranslatableModel, BaseModel):
         Product,
         related_name='package_content_images',
         verbose_name=_("Product Package Content Images"),
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
         blank=True
     )
@@ -172,7 +172,7 @@ class ProductSpecs(TranslatableModel, BaseModel):
         Product,
         related_name='specs',
         verbose_name=_("Product Specs"),
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
         blank=True
     )
@@ -256,7 +256,6 @@ class ProductUsageItem(TranslatableModel, BaseModel):
     # The 'Source' determines which field below is used
     MEDIA_TYPE_CHOICES = [
         ("image", "Image Upload"),
-        ("video", "Video Upload"),
         ("external", "Link (YouTube/Instagram)"),
     ]
     media_type = models.CharField(max_length=16, choices=MEDIA_TYPE_CHOICES, default="image")
