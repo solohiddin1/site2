@@ -3,12 +3,24 @@ from django.utils.html import format_html
 from parler.admin import TranslatableAdmin
 from .models import Category, SubCategory
 
+# class SubCategoryInline(admin.TabularInline):
+#     model = SubCategory
+#     extra = 0
+#     fields = ('name', 'image_thumbnail')
+#     readonly_fields = ('image_thumbnail',)
+
+#     def image_thumbnail(self, obj):
+#         if obj.image:
+#             return format_html('<img src="{}" width="50" height="50" />', obj.image.url)
+#         return ''
+#     image_thumbnail.short_description = 'Image Preview'
 
 @admin.register(Category)
 class CategoryAdmin(TranslatableAdmin):
-    list_display = ('name', 'id', 'image_thumbnail', 'subcategories_count')
+    list_display = ('name', 'id', 'image_thumbnail', 'subcategories_count', 'slug')
     search_fields = ('translations__name',)
     readonly_fields = ('image_thumbnail', 'second_image_preview')
+    # inlines = [SubCategoryInline]
 
     def image_thumbnail(self, obj):
         if obj.image:
@@ -29,7 +41,7 @@ class CategoryAdmin(TranslatableAdmin):
 
 @admin.register(SubCategory)
 class SubCategoryAdmin(TranslatableAdmin):
-    list_display = ('name', 'category', 'id', 'image_thumbnail')
+    list_display = ('name', 'category', 'id', 'image_thumbnail', 'slug')
     search_fields = ('translations__name', 'category__translations__name')
     list_filter = ('category',)
     readonly_fields = ('image_thumbnail',)

@@ -271,4 +271,4 @@ class ProductUsageItem(TranslatableModel, BaseModel):
         verbose_name = _("Product Usage Media")
 
     def __str__(self):
-        return f"{self.media_type} for {self.product.name}"
+        return f"{self.file} for {self.product.name}"

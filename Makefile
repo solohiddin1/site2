@@ -12,3 +12,6 @@ super:
 
 flush:
 	python manage.py flush
+
+slugs:
+	python populate_slugs.py

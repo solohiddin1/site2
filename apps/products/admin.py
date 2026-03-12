@@ -155,7 +155,7 @@ class NewArrivalsAdmin(admin.ModelAdmin):
 
 @admin.register(ProductUsageItem)
 class ProductUsageItemAdmin(admin.ModelAdmin):
-    list_display = ('product', 'media_type', 'created_at')
+    list_display = ('product', 'created_at')
     list_filter = ('product__subcategory',)
     search_fields = ('product__translations__name', 'product__sku')
     readonly_fields = ('created_at', 'updated_at')
@@ -164,7 +164,7 @@ class ProductUsageItemAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Product Usage Item Information', {
-            'fields': ('product', 'media_type', 'file', 'external_url')
+            'fields': ('product', 'file', 'external_url')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
