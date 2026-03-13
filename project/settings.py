@@ -172,12 +172,14 @@ CORS_ALLOWED_ORIGINS = [
     'https://7f0a7e0d2031.ngrok-free.app',
     'http://209.38.235.118',
     'https://209.38.235.118',
+    'http://95.46.96.189',
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
     'http://localhost:8080',
+    'http://95.46.96.189',
 ]
 
 BACKEND_URL = 'http://localhost:8001'
