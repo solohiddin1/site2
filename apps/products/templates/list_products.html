@@ -429,7 +429,7 @@
             <div class="product-card">
                 <!-- Product Image -->
                 <div class="product-image">
-                    {% if product.images.first %}
+                    {% if product.images.first and product.images.first.image %}
                     <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" loading="lazy">
                     {% else %}
                     <div class="image-placeholder">
