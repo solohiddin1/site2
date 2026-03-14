@@ -230,6 +230,7 @@
                             <p class="text-sm text-gray-600 mb-2">Mavjud paket rasmlari:</p>
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="existing-package-images-uz">
                                 {% for pkg_img in product.package_content_images.all %}
+                                {% if pkg_img.image %}
                                 <div class="relative group" id="package-{{ pkg_img.id }}">
                                     <img src="{{ pkg_img.image.url }}" alt="Package image"
                                         class="w-full h-32 object-cover rounded-lg">
@@ -238,6 +239,7 @@
                                         ×
                                     </button>
                                 </div>
+                                {% endif %}
                                 {% endfor %}
                             </div>
                         </div>
@@ -308,6 +310,7 @@
                             <p class="text-sm text-gray-600 mb-2">Existing package images:</p>
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="existing-package-images-en">
                                 {% for pkg_img in product.package_content_images.all %}
+                                {% if pkg_img.image %}
                                 <div class="relative group" id="package-en-{{ pkg_img.id }}">
                                     <img src="{{ pkg_img.image.url }}" alt="Package image"
                                         class="w-full h-32 object-cover rounded-lg">
@@ -316,6 +319,7 @@
                                         ×
                                     </button>
                                 </div>
+                                {% endif %}
                                 {% endfor %}
                             </div>
                         </div>
@@ -387,6 +391,7 @@
                             <p class="text-sm text-gray-600 mb-2">Существующие изображения упаковки:</p>
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="existing-package-images-ru">
                                 {% for pkg_img in product.package_content_images.all %}
+                                {% if pkg_img.image %}
                                 <div class="relative group" id="package-ru-{{ pkg_img.id }}">
                                     <img src="{{ pkg_img.image.url }}" alt="Package image"
                                         class="w-full h-32 object-cover rounded-lg">
@@ -395,6 +400,7 @@
                                         ×
                                     </button>
                                 </div>
+                                {% endif %}
                                 {% endfor %}
                             </div>
                         </div>
@@ -462,6 +468,7 @@
                         <p class="text-sm text-gray-600 mb-2">Mavjud rasmlar:</p>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="existing-images">
                             {% for image in product.images.all %}
+                            {% if image.image %}
                             <div class="relative group" id="image-{{ image.id }}">
                                 <img src="{{ image.image.url }}" alt="{{ image.alt }}"
                                     class="w-full h-32 object-cover rounded-lg">
@@ -474,6 +481,7 @@
                                     ×
                                 </button>
                             </div>
+                            {% endif %}
                             {% endfor %}
                         </div>
                     </div>
