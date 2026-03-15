@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
     ProductListView, ProductDetailView, ProductBySubCategoryView,
     ProductImageView, ProductInquiryView, TopProductsView, NewArrivalsView,
-    list_products_view, add_product_view, edit_product_view, duplicate_product_view, delete_product_image_view, delete_package_image_view,
+    list_products_view, add_product_view, edit_product_view, duplicate_product_view, delete_product_image_view, delete_package_image_view, delete_usage_media_view, delete_usage_media_image_view,
     list_specs_templates_view, add_specs_template_view, edit_specs_template_view, delete_specs_template_view,
     get_specs_template_view
 )
@@ -17,6 +17,14 @@ urlpatterns = [
     path('admin/duplicate_product/<int:product_id>/', duplicate_product_view, name='duplicate_product'),
     path('admin/delete_image/<int:image_id>/', delete_product_image_view, name='delete_product_image'),
     path('admin/delete_package_image/<int:package_id>/', delete_package_image_view, name='delete_package_image'),
+    path('admin/delete_usage_media/<int:usage_id>/', delete_usage_media_view, name='delete_usage_media'),
+    path('admin/delete_usage_media_image/<int:image_id>/', delete_usage_media_image_view, name='delete_usage_media_image'),
+
+    # Backward-compatible dashed URL aliases
+    path('admin/delete-image/<int:image_id>/', delete_product_image_view, name='delete_product_image_dash'),
+    path('admin/delete-package-image/<int:package_id>/', delete_package_image_view, name='delete_package_image_dash'),
+    path('admin/delete-usage-media/<int:usage_id>/', delete_usage_media_view, name='delete_usage_media_dash'),
+    path('admin/delete-usage-media-image/<int:image_id>/', delete_usage_media_image_view, name='delete_usage_media_image_dash'),
     
     # Specs templates management
     path('admin/specs-templates/', list_specs_templates_view, name='list_specs_templates'),

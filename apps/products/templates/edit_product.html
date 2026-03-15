@@ -495,6 +495,53 @@
                         <div id="image-preview" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4"></div>
                     </div>
                 </div>
+
+                <div class="mb-4 border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Usage media (rasm / YouTube URL)</label>
+
+                    {% if usage_media_item %}
+                    <div class="mb-4">
+                        <p class="text-sm text-gray-600 mb-2">Mavjud usage media:</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="existing-usage-media">
+                            {% for usage_img in usage_media_images %}
+                            <div class="relative group border rounded-lg p-2 bg-white" id="usage-image-{{ usage_img.id }}">
+                                <img src="{{ usage_img.image.url }}" alt="Usage media" class="w-full h-36 object-cover rounded">
+                                <button type="button" onclick="deleteUsageMediaImage({{ usage_img.id }})"
+                                    class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">×</button>
+                            </div>
+                            {% endfor %}
+
+                            {% if not usage_media_images and usage_media_item.file %}
+                            <div class="relative group border rounded-lg p-2 bg-white" id="usage-media-{{ usage_media_item.id }}">
+                                <img src="{{ usage_media_item.file.url }}" alt="Usage media" class="w-full h-36 object-cover rounded">
+                                <button type="button" onclick="deleteUsageMedia({{ usage_media_item.id }})"
+                                    class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">×</button>
+                            </div>
+                            {% endif %}
+
+                            {% if usage_media_item.external_url %}
+                            <div class="relative border rounded-lg p-3 bg-white" id="usage-url-{{ usage_media_item.id }}">
+                                <div class="text-sm text-gray-500 mb-1">External URL</div>
+                                <a href="{{ usage_media_item.external_url }}" target="_blank" rel="noreferrer" class="text-sm text-blue-600 underline break-all">{{ usage_media_item.external_url }}</a>
+                                <button type="button" onclick="deleteUsageMedia({{ usage_media_item.id }})"
+                                    class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center">×</button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-2">Yangi usage rasmlari yuklash:</label>
+                            <input type="file" name="usage_media_images" accept="image/*" multiple class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-2">YouTube external URL:</label>
+                            <input type="url" name="usage_external_url" value="{% if usage_media_item and usage_media_item.external_url %}{{ usage_media_item.external_url }}{% endif %}" placeholder="https://www.youtube.com/watch?v=..." class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Hidden input for specs JSON -->
@@ -518,7 +565,7 @@
                 return;
             }
 
-            fetch(`/api/admin/delete-image/${imageId}/`, {
+            fetch(`/api/products/admin/delete-image/${imageId}/`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': '{{ csrf_token }}',
@@ -554,7 +601,7 @@
                 return;
             }
 
-            fetch(`/api/admin/delete-package-image/${packageId}/`, {
+            fetch(`/api/products/admin/delete-package-image/${packageId}/`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': '{{ csrf_token }}',
@@ -571,6 +618,61 @@
                         });
                         const elem2 = document.getElementById(`package-${packageId}`);
                         if (elem2) elem2.remove();
+                    } else {
+                        alert('Xatolik: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Xatolik yuz berdi: ' + error);
+                });
+        }
+
+        // Delete usage media
+        function deleteUsageMedia(usageId) {
+            if (!confirm('Ushbu usage media elementini o\'chirishni xohlaysizmi?')) {
+                return;
+            }
+
+            fetch(`/api/products/admin/delete-usage-media/${usageId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const mediaElem = document.getElementById(`usage-media-${usageId}`);
+                        const urlElem = document.getElementById(`usage-url-${usageId}`);
+                        if (mediaElem) mediaElem.remove();
+                        if (urlElem) urlElem.remove();
+                    } else {
+                        alert('Xatolik: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Xatolik yuz berdi: ' + error);
+                });
+        }
+
+        function deleteUsageMediaImage(imageId) {
+            if (!confirm('Ushbu usage media rasmini o\'chirishni xohlaysizmi?')) {
+                return;
+            }
+
+            fetch(`/api/products/admin/delete-usage-media-image/${imageId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const imageElem = document.getElementById(`usage-image-${imageId}`);
+                        if (imageElem) imageElem.remove();
                     } else {
                         alert('Xatolik: ' + data.message);
                     }

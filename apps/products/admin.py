@@ -4,7 +4,7 @@ from parler.admin import TranslatableAdmin, TranslatableTabularInline
 from .models import (
     NewArrivals, Product, ProductImage, ProductLongDesc, ProductSpecsTemplate,
     ProductPackageContentImages, ProductSpecs, TopProduct, 
-    ProductUsageItem
+    ProductUsageItem, ProductUsageMediaImage
 )
 from django.urls import reverse
 
@@ -25,10 +25,24 @@ class ProductImageInline(admin.TabularInline):
         return "-"
     image_preview.short_description = 'Image Preview'
 
-class ProductUsageItemInline(admin.TabularInline):
+class ProductUsageItemInline(TranslatableTabularInline):
     model = ProductUsageItem
     extra = 0
     # fields = ('media_type', 'file', 'ordering', 'translations__caption')
+    fieldsets = (
+        ('translations', {
+            'fields': ('caption',)
+        }),
+        ('Usage Item Details', {
+            'fields': ('media_type', 'file', 'external_url', 'ordering')
+        }),
+    )
+
+
+class ProductUsageMediaImageInline(admin.TabularInline):
+    model = ProductUsageMediaImage
+    extra = 1
+    fields = ('image', 'ordering')
 
 class ProductSpecsInline(TranslatableTabularInline):
     model = ProductSpecs
@@ -154,7 +168,8 @@ class NewArrivalsAdmin(admin.ModelAdmin):
     )
 
 @admin.register(ProductUsageItem)
-class ProductUsageItemAdmin(admin.ModelAdmin):
+class ProductUsageItemAdmin(TranslatableAdmin):
+    inlines = [ProductUsageMediaImageInline]
     list_display = ('product', 'created_at')
     list_filter = ('product__subcategory',)
     search_fields = ('product__translations__name', 'product__sku')
@@ -169,6 +184,9 @@ class ProductUsageItemAdmin(admin.ModelAdmin):
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',)
+        }),
+        ('Translations', {
+            'fields': ('caption',)
         }),
     )
 

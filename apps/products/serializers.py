@@ -3,7 +3,7 @@ from parler_rest.serializers import TranslatableModelSerializer, TranslatedField
 from .models import (
     Product, ProductImage, ProductLongDesc, 
     ProductPackageContentImages, ProductSpecs, TopProduct, NewArrivals, 
-    ProductUsageItem
+    ProductUsageItem, ProductUsageMediaImage
 )
 from apps.categories.serializers import SubCategorySerializer
 
@@ -49,10 +49,22 @@ class RelatedProductSerializer(TranslatableModelSerializer):
 
 class ProductUsageItemSerializer(serializers.ModelSerializer):
     translations = TranslatedFieldsField(shared_model=ProductUsageItem)
+    images = serializers.SerializerMethodField()
+
+    def get_images(self, obj):
+        return ProductUsageMediaImageSerializer(obj.images.all(), many=True, context=self.context).data
 
     class Meta:
         model = ProductUsageItem
-        fields = ['id', 'media_type', 'file', 'product', 'ordering', 'external_url', 'translations']
+        fields = ['id', 'media_type', 'file', 'images', 'product', 'ordering', 'external_url', 
+                  'translations'
+                  ]
+
+
+class ProductUsageMediaImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductUsageMediaImage
+        fields = ['id', 'image', 'ordering']
 
 
 class ProductSerializer(TranslatableModelSerializer):

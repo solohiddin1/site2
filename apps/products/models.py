@@ -239,10 +239,8 @@ class NewArrivals(BaseModel):
 class ProductUsageItem(TranslatableModel, BaseModel):
     """Flexible usage item: handles image, video, or social links"""
     
-    # We keep the translations here if the client wants 
-    # specific captions for each video/image
     translations = TranslatedFields(
-        caption=models.CharField(max_length=255, blank=True, null=True),
+        caption=models.TextField(blank=True, null=True),
     )
 
     product = models.ForeignKey(
@@ -272,3 +270,25 @@ class ProductUsageItem(TranslatableModel, BaseModel):
 
     def __str__(self):
         return f"{self.file} for {self.product.name}"
+
+
+class ProductUsageMediaImage(BaseModel):
+    """Multiple images attached to a single usage media item."""
+
+    usage_item = models.ForeignKey(
+        ProductUsageItem,
+        related_name='images',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+    image = models.ImageField(upload_to='products/usage/', blank=True, null=True)
+    ordering = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['ordering', 'id']
+        verbose_name = _('Product Usage Media Image')
+        verbose_name_plural = _('Product Usage Media Images')
+
+    def __str__(self):
+        return f"Usage image {self.pk} for usage item {self.usage_item_id}"

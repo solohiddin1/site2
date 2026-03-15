@@ -25,12 +25,6 @@ class CompanyAdmin(TranslatableAdmin):
         # }),
     )
 
-    # def logo_preview(self, obj):
-    #     if obj.logo:
-    #         return format_html('<img src="{}" width="100" height="100" />', obj.logo.url)
-    #     return "-"
-    # logo_preview.short_description = 'Logo Preview'
-
 
 @admin.register(Partners)
 class PartnersAdmin(admin.ModelAdmin):
@@ -45,17 +39,17 @@ class PartnersAdmin(admin.ModelAdmin):
     image_preview.short_description = 'Logo'
 
 
-@admin.register(BannerImages)
-class BannerImagesAdmin(admin.ModelAdmin):
-    list_display = ('banner', 'image_preview', 'alt')
-    readonly_fields = ('image_preview', 'image_desktop', 'image_mobile')
-    search_fields = ('banner__translations__name', 'alt')
+# @admin.register(BannerImages)
+# class BannerImagesAdmin(admin.ModelAdmin):
+#     list_display = ('banner', 'image_preview', 'alt')
+#     readonly_fields = ('image_preview', 'image_desktop', 'image_mobile')
+#     search_fields = ('banner__translations__name', 'alt')
 
-    def image_preview(self, obj):
-        if obj.image:
-            return format_html('<img src="{}" style="max-height: 100px;"/>', obj.image.url)
-        return "-"
-    image_preview.short_description = "Preview"
+#     def image_preview(self, obj):
+#         if obj.image:
+#             return format_html('<img src="{}" style="max-height: 100px;"/>', obj.image.url)
+#         return "-"
+#     image_preview.short_description = "Preview"
 
 class BannerImageInline(admin.TabularInline):
     model = BannerImages

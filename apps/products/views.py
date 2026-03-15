@@ -3,6 +3,7 @@ import json
 
 from django.db.models import Q
 from rest_framework import generics
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -10,7 +11,7 @@ from rest_framework import permissions
 from .models import (Product, ProductImage, ProductLongDesc, 
                      ProductPackageContentImages,
                      ProductSpecs, ProductSpecsTemplate, 
-                     TopProduct, NewArrivals, ProductUsageItem
+                     TopProduct, NewArrivals, ProductUsageItem, ProductUsageMediaImage
                      )
 from .utils import send_product_inquiry_telegram
 from apps.company.models import Connection
@@ -87,7 +88,7 @@ class ProductDetailView(generics.RetrieveAPIView):
         
         return (
             Product.objects.language(lang)
-            .prefetch_related("specs", "images", "package_content_images", "long_desc", "usage_media")
+            .prefetch_related("specs", "images", "package_content_images", "long_desc", "usage_media", "usage_media__images")
             .select_related("subcategory")
         )
 
@@ -334,12 +335,33 @@ def create_product(request):
             if usage:
                 usage_data[lang] = usage
 
-        if usage_data:
+        usage_external_url = request.data.get('usage_external_url', '').strip()
+        usage_media_files = request.FILES.getlist('usage_media_images')
+        if not usage_media_files:
+            legacy_usage_file = request.FILES.get('usage_media_file')
+            if legacy_usage_file:
+                usage_media_files = [legacy_usage_file]
+
+        if usage_data or usage_external_url or usage_media_files:
             product_usage = ProductUsageItem(product=product)
             for lang, text in usage_data.items():
                 product_usage.set_current_language(lang)
-                product_usage.usage = text
+                product_usage.caption = text
+
+            if usage_external_url:
+                product_usage.external_url = usage_external_url
+                product_usage.media_type = 'external'
+            elif usage_media_files:
+                product_usage.media_type = 'image'
+
             product_usage.save()
+
+            for idx, usage_image in enumerate(usage_media_files):
+                ProductUsageMediaImage.objects.create(
+                    usage_item=product_usage,
+                    image=usage_image,
+                    ordering=idx
+                )
 
         # Handle package images - create separate objects for each uploaded file
         for lang in ['uz', 'en', 'ru']:
@@ -457,12 +479,34 @@ def add_product_view(request):
                 if usage:
                     usage_data[lang] = usage
 
-            if usage_data:
-                product_usage = ProductUsage(product=product)
+            usage_external_url = request.POST.get('usage_external_url', '').strip()
+            usage_media_files = request.FILES.getlist('usage_media_images')
+            if not usage_media_files:
+                legacy_usage_file = request.FILES.get('usage_media_file')
+                if legacy_usage_file:
+                    usage_media_files = [legacy_usage_file]
+
+            if usage_data or usage_external_url or usage_media_files:
+                product_usage = ProductUsageItem(product=product)
                 for lang, text in usage_data.items():
                     product_usage.set_current_language(lang)
-                    product_usage.usage = text
+                    product_usage.caption = text
+
+                if usage_external_url:
+                    product_usage.external_url = usage_external_url
+                    product_usage.media_type = 'external'
+
+                if usage_media_files and not usage_external_url:
+                    product_usage.media_type = 'image'
+
                 product_usage.save()
+
+                for idx, usage_image in enumerate(usage_media_files):
+                    ProductUsageMediaImage.objects.create(
+                        usage_item=product_usage,
+                        image=usage_image,
+                        ordering=idx
+                    )
 
             # Handle package images - create separate objects for each uploaded file
             for lang in ['uz', 'en', 'ru']:
@@ -608,6 +652,36 @@ def delete_package_image_view(request, package_id):
             return JsonResponse({'success': False, 'message': str(e)}, status=400)
     return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
 
+
+@staff_member_required
+def delete_usage_media_view(request, usage_id):
+    """
+    Delete a usage media item - AJAX endpoint
+    """
+    if request.method == 'POST':
+        try:
+            usage_item = get_object_or_404(ProductUsageItem, id=usage_id)
+            usage_item.delete()
+            return JsonResponse({'success': True, 'message': 'Usage media o\'chirildi'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=400)
+    return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
+
+
+@staff_member_required
+def delete_usage_media_image_view(request, image_id):
+    """
+    Delete a usage media image - AJAX endpoint
+    """
+    if request.method == 'POST':
+        try:
+            usage_image = get_object_or_404(ProductUsageMediaImage, id=image_id)
+            usage_image.delete()
+            return JsonResponse({'success': True, 'message': 'Usage media rasmi o\'chirildi'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=400)
+    return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
+
 @staff_member_required
 def duplicate_product_view(request, product_id):
     """
@@ -682,8 +756,19 @@ def duplicate_product_view(request, product_id):
                 src_usage.set_current_language(lang)
                 if src_usage.has_translation(lang):
                     new_usage.set_current_language(lang)
-                    new_usage.usage = src_usage.usage
+                    new_usage.caption = src_usage.caption
+            new_usage.media_type = src_usage.media_type
+            new_usage.external_url = src_usage.external_url
+            new_usage.file = src_usage.file
+            new_usage.ordering = src_usage.ordering
             new_usage.save()
+
+            for usage_image in src_usage.images.all():
+                ProductUsageMediaImage.objects.create(
+                    usage_item=new_usage,
+                    image=usage_image.image,
+                    ordering=usage_image.ordering
+                )
         except ProductUsageItem.DoesNotExist:
             pass
 
@@ -762,13 +847,43 @@ def edit_product_view(request, product_id):
                     product_long_desc.save()
 
             # Update or create usage
+            product_usage = None
             for lang in ['uz', 'en', 'ru']:
                 usage = request.POST.get(f'usage_{lang}', '')
                 if usage:
-                    product_usage, created = ProductUsageItem.objects.get_or_create(product=product)
+                    product_usage, created = ProductUsageItem.objects.get_or_create(product=product, ordering=0)
                     product_usage.set_current_language(lang)
-                    product_usage.usage = usage
+                    product_usage.caption = usage
                     product_usage.save()
+
+            usage_external_url = request.POST.get('usage_external_url', '').strip()
+            usage_media_files = request.FILES.getlist('usage_media_images')
+            if not usage_media_files:
+                legacy_usage_file = request.FILES.get('usage_media_file')
+                if legacy_usage_file:
+                    usage_media_files = [legacy_usage_file]
+
+            if usage_external_url or usage_media_files:
+                if product_usage is None:
+                    product_usage, created = ProductUsageItem.objects.get_or_create(product=product, ordering=0)
+
+                if usage_external_url:
+                    product_usage.external_url = usage_external_url
+                    product_usage.media_type = 'external'
+
+                if usage_media_files and not usage_external_url:
+                    product_usage.media_type = 'image'
+
+                product_usage.save()
+
+                if usage_media_files:
+                    current_max = product_usage.images.count()
+                    for idx, usage_image in enumerate(usage_media_files):
+                        ProductUsageMediaImage.objects.create(
+                            usage_item=product_usage,
+                            image=usage_image,
+                            ordering=current_max + idx
+                        )
 
             # Handle package images - create separate objects for each uploaded file
             for lang in ['uz', 'en', 'ru']:
@@ -808,12 +923,16 @@ def edit_product_view(request, product_id):
     
     # Get usage
     usage = {'uz': '', 'en': '', 'ru': ''}
+    usage_media_item = None
+    usage_media_images = []
     try:
-        product_usage = ProductUsageItem.objects.get(product=product)
+        product_usage = ProductUsageItem.objects.filter(product=product).order_by('ordering', 'id').first()
+        usage_media_item = product_usage
         for lang in ['uz', 'en', 'ru']:
             product_usage.set_current_language(lang)
-            usage[lang] = product_usage.usage
-    except ProductUsageItem.DoesNotExist:
+            usage[lang] = product_usage.caption or ''
+        usage_media_images = list(product_usage.images.all()) if product_usage else []
+    except Exception:
         pass
     
     # Get specs
@@ -868,6 +987,8 @@ def edit_product_view(request, product_id):
         'categories': categories_list,
         'subcategories_json': json.dumps(subcategories_list),
         'specs_templates': templates_list,
+        'usage_media_item': usage_media_item,
+        'usage_media_images': usage_media_images,
         'is_edit': True
     }
     
