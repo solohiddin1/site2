@@ -1,14 +1,80 @@
 {% extends "admin/change_list.html" %}
 {% load static %}
 
+{% block extrahead %}
+    {{ block.super }}
+    <style>
+        #changelist .object-tools {
+            float: none;
+            position: static;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 0 0 12px;
+            padding: 0;
+            max-width: 100%;
+        }
+
+        #changelist .object-tools li {
+            float: none;
+            margin: 0;
+        }
+
+        .product-tool-link {
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+
+        .product-tool-link.view {
+            background-color: #3b82f6;
+        }
+
+        .product-tool-link.add {
+            background-color: #e31e24;
+        }
+
+        @media (max-width: 768px) {
+            #changelist .object-tools {
+                margin-top: 8px;
+            }
+
+            #changelist .object-tools li {
+                margin: 0;
+            }
+
+            .product-tool-link {
+                width: 100%;
+                padding: 9px 12px;
+                font-size: 13px;
+                white-space: normal;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .product-tool-link {
+                font-size: 12px;
+                padding: 8px 10px;
+            }
+        }
+    </style>
+{% endblock %}
+
 {% block object-tools-items %}
     <li>
-        <a href="{% url 'products:list_products' %}" class="viewlink" style="background-color: #3b82f6; color: white; padding: 10px 15px; border-radius: 4px; text-decoration: none; font-weight: 600; margin-right: 5px;">
+        <a href="{% url 'products:list_products' %}" class="viewlink product-tool-link view">
             📋 Mahsulotlar ro'yxati
         </a>
     </li>
     <li>
-        <a href="{% url 'products:add_product' %}" class="addlink" style="background-color: #E31E24; color: white; padding: 10px 15px; border-radius: 4px; text-decoration: none; font-weight: 600;">
+        <a href="{% url 'products:add_product' %}" class="addlink product-tool-link add">
             ➕ Yangi mahsulot qo'shish
         </a>
     </li>
