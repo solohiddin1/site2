@@ -27,7 +27,9 @@ class Category(BaseModel, TranslatableModel):
         unique_code=models.CharField(max_length=50, default=get_unique_code, blank=True, null=True),
     )
     image = models.ImageField(upload_to='categories/', blank=True, null=True)
+    image_compressed = models.ImageField(upload_to='categories/compressed/', blank=True, null=True)
     second_image = models.ImageField(upload_to='categories/', blank=True, null=True)
+    second_image_compressed = models.ImageField(upload_to='categories/compressed/', blank=True, null=True)
     slug = models.SlugField(
         max_length=255,
         blank=True,
@@ -111,6 +113,7 @@ class SubCategory(TranslatableModel, BaseModel):
     )
     category = models.ForeignKey(Category, related_name='subcategories', on_delete=models.SET_NULL, null=True, blank=True)
     image = models.ImageField(upload_to='subcategories/', blank=True, null=True)
+    image_compressed = models.ImageField(upload_to='subcategories/compressed/', blank=True, null=True)
     slug = models.SlugField(
         max_length=255,
         blank=True,

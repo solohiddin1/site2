@@ -108,8 +108,8 @@ class BannerImages(BaseModel):
     """Additional images for banners"""
     banner = models.ForeignKey(Banner, related_name='additional_images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='banners/additional/', blank=True, null=True)
-    image_desktop = models.ImageField(upload_to='banners/image_desktop/', blank=True, null=True)
-    image_mobile = models.ImageField(upload_to='banners/image_mobile/', blank=True, null=True)
+    # image_desktop = models.ImageField(upload_to='banners/image_desktop/', blank=True, null=True)
+    # image_mobile = models.ImageField(upload_to='banners/image_mobile/', blank=True, null=True)
     alt = models.CharField(max_length=255, blank=True)
 
     class Meta:

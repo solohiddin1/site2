@@ -11,11 +11,10 @@ from django.urls import reverse
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
     extra = 1
-    # fields = ('image', 'alt', 'ordering', 'image_preview', 'image_desktop', 'image_mobile')
+    # fields = ('image', 'alt', 'ordering', 'image_preview', 'image_desktop')
     readonly_fields = (
         'image_preview',
         'image_desktop',
-        'image_mobile',
         # 'image_thumb_miniatura',
     )
 
@@ -76,7 +75,7 @@ class ProductAdmin(TranslatableAdmin):
         ProductLongDescInline,
         ProductPackageContentImagesInline
     ]
-    list_display = ('name', 'sku', 'subcategory', 'warranty_months', 'id')
+    list_display = ('name', 'sku', 'subcategory', 'warranty_months', 'id', 'slug', 'get_image_preview')
     search_fields = ('translations__name', 'sku', 'unique_code')
     list_filter = ('subcategory', 'subcategory__category')
     readonly_fields = ('unique_code', 'created_at', 'updated_at')
@@ -92,6 +91,14 @@ class ProductAdmin(TranslatableAdmin):
             'classes': ('collapse',)
         }),
     )
+
+    def get_image_preview(self, obj):
+        first_image = obj.images.first()
+        if first_image and first_image.image:
+            return format_html('<img src="{}" width="100" height="100" />', first_image.image.url)
+        return "-"
+    get_image_preview.short_description = 'Image Preview'
+
     # change_form_template = "admin/product/change_form.html"
     
     def changelist_view(self, request, extra_context=None):
@@ -108,12 +115,12 @@ class ProductAdmin(TranslatableAdmin):
 class ProductImageAdmin(admin.ModelAdmin):
     list_display = ('id', 'product', 'image_preview', 'alt', 'ordering')
     list_filter = ('product',)
+    # list_filter = ('product', 'product__isnull')
     readonly_fields = (
         'image_preview',
         'image_desktop',
-        'image_mobile',
-        # 'image_thumb_miniatura',
     )
+    ordering = ('-created_at',)
 
     def image_preview(self, obj):
         if obj.image:
@@ -130,7 +137,7 @@ class ProductSpecsTemplateAdmin(TranslatableAdmin):
 
 @admin.register(TopProduct)
 class TopProductsAdmin(admin.ModelAdmin):
-    list_display = ('product', 'ordering', 'created_at')
+    list_display = ('product', 'ordering', 'created_at', 'get_image_preview')
     list_filter = ('product__subcategory',)
     search_fields = ('product__translations__name', 'product__sku')
     readonly_fields = ('created_at', 'updated_at')
@@ -146,6 +153,17 @@ class TopProductsAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+    def get_image_preview(self, obj):
+        if not obj.product and not obj.product.images.exists():
+            return "-"
+        if obj.product.images.exists() and not obj.product.images.first().image_desktop:
+            return "-"
+        first_image = obj.product.images.first()
+        if first_image and first_image.image_desktop:
+            return format_html('<img src="{}" width="100" height="100" />', first_image.image_desktop.url)
+        return "-"
+    get_image_preview.short_description = 'Image Preview'
 
     
 @admin.register(NewArrivals)

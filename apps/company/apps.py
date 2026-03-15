@@ -6,5 +6,5 @@ class CompanyConfig(AppConfig):
     name = 'apps.company'
     verbose_name = 'Company'
     
-    def ready(self):
-        import apps.company.signals  # noqa
+    # def ready(self):
+    #     import apps.company.signals  # noqa

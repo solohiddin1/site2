@@ -1,33 +1,53 @@
 import os
 import io
 import requests
-from PIL import Image
+from PIL import Image, ImageOps
 from django.core.files.base import ContentFile
 from django.conf import settings
 
 """for product model"""
 def compress_image(
         image_file, 
-        sizes: tuple, 
-        format: str, 
-        quality: int
+    sizes: tuple | None,
+    format: str,
+    quality: int,
+    keep_dimensions: bool = False,
         ):
     """
         image_file: Django ImageField file
         size: (width, height)
         format: WEBP / JPEG / PNG
     """
-    print(f"Compressing image {image_file.name} to size {sizes} in format {format}...")
+    print(f"Compressing image {image_file.name} in format {format}...")
     img = Image.open(image_file)
-    img = img.convert("RGB")  # Ensure image is in RGB mode
-    resized = img.resize(sizes, Image.LANCZOS)  # Resize to given sizes
+    img = ImageOps.exif_transpose(img)  # Respect phone camera orientation metadata
+
+    # Resize only when explicitly requested.
+    if sizes and not keep_dimensions:
+        output_img = img.resize(sizes, Image.LANCZOS)
+        output_size = sizes
+    else:
+        output_img = img
+        output_size = img.size
+
+    # JPEG/WEBP save path is most efficient with RGB.
+    if format.upper() in {"JPEG", "JPG", "WEBP"} and output_img.mode not in {"RGB", "L"}:
+        output_img = output_img.convert("RGB")
     
     buffer = io.BytesIO()
-    resized.save(buffer, format=format, quality=quality)
+    save_kwargs = {
+        "format": format,
+        "quality": quality,
+        "optimize": True,
+    }
+    if format.upper() == "WEBP":
+        save_kwargs["method"] = 6
+
+    output_img.save(buffer, **save_kwargs)
     ext = format.lower()
     # name = image_file.name.rsplit(".", 1)[0]
     name, _ = os.path.splitext(os.path.basename(image_file.name)) # Get name without extension
-    filename = f"{name}_{sizes[0]}x{sizes[1]}.{ext}"
+    filename = f"{name}_{output_size[0]}x{output_size[1]}.{ext}"
 
     return ContentFile(buffer.getvalue(), name=filename)
 

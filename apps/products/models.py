@@ -97,11 +97,9 @@ class Product(TranslatableModel, BaseModel):
 
 
 class ProductImage(BaseModel):
-    """Multiple images per product with ordering"""
-    product = models.ForeignKey(Product, related_name='images', on_delete=models.SET_NULL, null=True, blank=True)
+    product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='products/', blank=True, null=True)
     image_desktop = models.ImageField(upload_to='products/desktop/', blank=True, null=True)
-    image_mobile = models.ImageField(upload_to='products/mobile/', blank=True, null=True)
     alt = models.CharField(max_length=255, blank=True)
     ordering = models.PositiveIntegerField(default=0)
 
@@ -115,7 +113,6 @@ class ProductImage(BaseModel):
 
 
 class ProductLongDesc(TranslatableModel, BaseModel):
-    """Long description for products"""
     translations = TranslatedFields(
         long_desc=models.TextField(blank=True, null=True),
     )
@@ -140,7 +137,6 @@ class ProductLongDesc(TranslatableModel, BaseModel):
 
 
 class ProductPackageContentImages(TranslatableModel, BaseModel):
-    """Package content images for products"""
     translations = TranslatedFields(
         image=models.ImageField(upload_to='products/package_content/', blank=True, null=True)
     )

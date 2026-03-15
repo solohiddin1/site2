@@ -7,3 +7,6 @@ media/
 db.sqlite3
 logs/
 *.log
+*.sqlite3
+db_backup.sqlite3
+server_db.sqlite3

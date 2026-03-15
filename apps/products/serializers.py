@@ -11,7 +11,7 @@ from apps.categories.serializers import SubCategorySerializer
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
-        fields = ['id', 'product', 'image', 'alt', 'ordering']
+        fields = ['id', 'product', 'image', 'image_desktop', 'alt', 'ordering']
 
 
 class ProductPackageContentImagesSerializer(serializers.ModelSerializer):

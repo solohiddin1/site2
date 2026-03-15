@@ -19,8 +19,9 @@ from .models import Category, SubCategory
 class CategoryAdmin(TranslatableAdmin):
     list_display = ('name', 'id', 'image_thumbnail', 'subcategories_count', 'slug')
     search_fields = ('translations__name',)
-    readonly_fields = ('image_thumbnail', 'second_image_preview')
+    readonly_fields = ('image_thumbnail', 'second_image_preview', 'image_compressed', 'second_image_compressed')
     # inlines = [SubCategoryInline]
+    ordering = ('-updated_at',)
 
     def image_thumbnail(self, obj):
         if obj.image:
@@ -44,7 +45,8 @@ class SubCategoryAdmin(TranslatableAdmin):
     list_display = ('name', 'category', 'id', 'image_thumbnail', 'slug')
     search_fields = ('translations__name', 'category__translations__name')
     list_filter = ('category',)
-    readonly_fields = ('image_thumbnail',)
+    readonly_fields = ('image_thumbnail', 'image_compressed')
+    ordering = ('-updated_at',)
 
     def image_thumbnail(self, obj):
         if obj.image:

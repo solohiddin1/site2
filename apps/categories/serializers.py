@@ -10,7 +10,15 @@ class CategorySimpleSerializer(TranslatableModelSerializer):
 
     class Meta:
         model = Category
-        fields = ['id', 'translations', 'slug']
+        fields = [
+            'id',
+            'translations',
+            'slug',
+            'image',
+            'image_compressed',
+            'second_image',
+            'second_image_compressed',
+        ]
 
 
 class SubCategorySerializer(TranslatableModelSerializer):
@@ -20,7 +28,7 @@ class SubCategorySerializer(TranslatableModelSerializer):
 
     class Meta:
         model = SubCategory
-        fields = ['id', 'translations', 'slug', 'image', 'product_count']
+        fields = ['id', 'translations', 'slug', 'image', 'image_compressed', 'product_count']
         # fields = ['id', 'translations', 'image', 'product_count', 'category']
 
     def get_product_count(self, obj):
@@ -35,7 +43,18 @@ class CategorySerializer(TranslatableModelSerializer):
 
     class Meta:
         model = Category
-        fields = ['id', 'translations', 'slug', 'image', 'second_image', 'subcategories', 'subcategories_count', 'product_count']
+        fields = [
+            'id',
+            'translations',
+            'slug',
+            'image',
+            'image_compressed',
+            'second_image',
+            'second_image_compressed',
+            'subcategories',
+            'subcategories_count',
+            'product_count',
+        ]
 
     def get_subcategories(self, obj):
         qs = obj.subcategories.all()
@@ -59,4 +78,12 @@ class CategoriesWithSubcategoriesSerializer(TranslatableModelSerializer):
 
     class Meta:
         model = Category
-        fields = ['id', 'translations', 'image', 'second_image', 'subcategories']
+        fields = [
+            'id',
+            'translations',
+            'image',
+            'image_compressed',
+            'second_image',
+            'second_image_compressed',
+            'subcategories',
+        ]
