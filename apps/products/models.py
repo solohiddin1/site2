@@ -97,7 +97,7 @@ class Product(TranslatableModel, BaseModel):
 
 
 class ProductImage(BaseModel):
-    product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE, blank=True, null=True)
     image = models.ImageField(upload_to='products/', blank=True, null=True)
     image_desktop = models.ImageField(upload_to='products/desktop/', blank=True, null=True)
     alt = models.CharField(max_length=255, blank=True)
