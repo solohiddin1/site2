@@ -1,0 +1,1 @@
+from apps.products.management.delete_orphan_product_images import Command
