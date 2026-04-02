@@ -94,6 +94,10 @@ class ProductAdmin(TranslatableAdmin):
 
     def get_image_preview(self, obj):
         first_image = obj.images.first()
+
+        if first_image and first_image.image_desktop:
+            return format_html('<img src="{}" width="100" height="100" />', first_image.image_desktop.url)
+
         if first_image and first_image.image:
             return format_html('<img src="{}" width="100" height="100" />', first_image.image.url)
         return "-"
@@ -125,6 +129,10 @@ class ProductImageAdmin(admin.ModelAdmin):
     def image_preview(self, obj):
         if obj.image:
             return format_html('<img src="{}" width="100" height="100" />', obj.image.url)
+
+        if obj.image_desktop:
+            return format_html('<img src="{}" width="100" height="100" />', obj.image_desktop.url)
+
         return "-"
     image_preview.short_description = 'Preview'
 
@@ -192,7 +200,6 @@ class ProductUsageItemAdmin(TranslatableAdmin):
     list_filter = ('product__subcategory',)
     search_fields = ('product__translations__name', 'product__sku')
     readonly_fields = ('created_at', 'updated_at')
-    # list_editable = ('ordering',)
     ordering = ('ordering', '-created_at')
     
     fieldsets = (
@@ -207,15 +214,3 @@ class ProductUsageItemAdmin(TranslatableAdmin):
             'fields': ('caption',)
         }),
     )
-
-
-# @admin.register(Certificates)
-# class CertificatesAdmin(admin.ModelAdmin):
-#     list_display = ('id', 'image_preview', 'ordering')
-#     readonly_fields = ('image_preview',)
-
-#     def image_preview(self, obj):
-#         if obj.image:
-#             return format_html('<img src="{}" width="100" height="100" />', obj.image.url)
-#         return "-"
-#     image_preview.short_description = 'Preview'

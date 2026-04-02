@@ -15,3 +15,9 @@ flush:
 
 slugs:
 	python populate_slugs.py
+
+images:
+	python manage.py compress_images
+
+delete_orphans:
+	python manage.py delete_orphan_product_images
