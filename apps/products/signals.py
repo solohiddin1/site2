@@ -32,13 +32,11 @@ def _compress_product_image(instance: ProductImage) -> None:
         instance.image_desktop.save(image_desktop.name, image_desktop, save=False)
         ProductImage.objects.filter(pk=instance.pk).update(
             image_desktop=instance.image_desktop,
-            image_mobile=None,
         )
 
         old_paths = {
             'original': getattr(instance, '_old_image', None),
             'desktop': getattr(instance, '_old_image_desktop', None),
-            'mobile': getattr(instance, '_old_image_mobile', None),
         }
 
         for img_type, old_path in old_paths.items():
@@ -70,7 +68,6 @@ def track_product_image_changes(sender, instance, **kwargs):
         if instance._image_changed:
             instance._old_image = old_instance.image.path if old_instance.image else None
             instance._old_image_desktop = old_instance.image_desktop.path if old_instance.image_desktop else None
-            instance._old_image_mobile = old_instance.image_mobile.path if old_instance.image_mobile else None
     except sender.DoesNotExist:
         instance._image_changed = bool(instance.image)
 
