@@ -1,12 +1,37 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
+import mimetypes
 from .models import (
     NewArrivals, Product, ProductImage, ProductLongDesc, ProductSpecsTemplate,
     ProductPackageContentImages, ProductSpecs, TopProduct, 
     ProductUsageItem, ProductUsageMediaImage
 )
 from django.urls import reverse
+
+
+def _render_file_preview(file_field, width=120):
+    """Render admin preview for FileField (image/video/link fallback)."""
+    if not file_field:
+        return "-"
+
+    try:
+        url = file_field.url
+    except Exception:
+        return "-"
+
+    mime_type, _ = mimetypes.guess_type(str(file_field.name))
+
+    if mime_type and mime_type.startswith("image/"):
+        return format_html('<img src="{}" width="{}" style="height:auto;" />', url, width)
+    if mime_type and mime_type.startswith("video/"):
+        return format_html(
+            '<video width="{}" controls preload="metadata"><source src="{}"></video>',
+            width,
+            url,
+        )
+
+    return format_html('<a href="{}" target="_blank">Open file</a>', url)
 
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
@@ -27,15 +52,20 @@ class ProductImageInline(admin.TabularInline):
 class ProductUsageItemInline(TranslatableTabularInline):
     model = ProductUsageItem
     extra = 0
+    readonly_fields = ('file_preview',)
     # fields = ('media_type', 'file', 'ordering', 'translations__caption')
     fieldsets = (
         ('translations', {
             'fields': ('caption',)
         }),
         ('Usage Item Details', {
-            'fields': ('media_type', 'file', 'external_url', 'ordering')
+            'fields': ('media_type', 'file', 'file_preview', 'external_url', 'ordering')
         }),
     )
+
+    def file_preview(self, obj):
+        return _render_file_preview(obj.file)
+    file_preview.short_description = 'File Preview'
 
 
 class ProductUsageMediaImageInline(admin.TabularInline):
@@ -196,15 +226,15 @@ class NewArrivalsAdmin(admin.ModelAdmin):
 @admin.register(ProductUsageItem)
 class ProductUsageItemAdmin(TranslatableAdmin):
     inlines = [ProductUsageMediaImageInline]
-    list_display = ('product', 'created_at')
+    list_display = ('product', 'created_at', 'file_preview')
     list_filter = ('product__subcategory',)
     search_fields = ('product__translations__name', 'product__sku')
-    readonly_fields = ('created_at', 'updated_at')
+    readonly_fields = ('created_at', 'updated_at', 'file_preview')
     ordering = ('ordering', '-created_at')
     
     fieldsets = (
         ('Product Usage Item Information', {
-            'fields': ('product', 'file', 'external_url')
+            'fields': ('product', 'file', 'file_preview', 'external_url')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
@@ -214,3 +244,7 @@ class ProductUsageItemAdmin(TranslatableAdmin):
             'fields': ('caption',)
         }),
     )
+
+    def file_preview(self, obj):
+        return _render_file_preview(obj.file)
+    file_preview.short_description = 'File Preview'
