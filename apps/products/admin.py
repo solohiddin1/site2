@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
 import mimetypes
 from .models import (
@@ -11,7 +11,6 @@ from django.urls import reverse
 
 
 def _render_file_preview(file_field, width=120):
-    """Render admin preview for FileField (image/video/link fallback)."""
     if not file_field:
         return "-"
 
@@ -169,8 +168,34 @@ class ProductImageAdmin(admin.ModelAdmin):
 
 @admin.register(ProductSpecsTemplate)
 class ProductSpecsTemplateAdmin(TranslatableAdmin):
-    list_display = ('name',)
+    list_display = ('name', 'specs_preview')
     search_fields = ('translations__name',)
+
+    def specs_preview(self, obj):
+        specs = obj.safe_translation_getter('specs', any_language=True) or {}
+        if not isinstance(specs, dict) or not specs:
+            return "-"
+
+        items = list(specs.items())
+        preview_items = items[:6]
+        remaining = len(items) - len(preview_items)
+
+        list_html = format_html_join(
+            '',
+            '<li><strong>{}</strong>: {}</li>',
+            ((str(key), str(value)) for key, value in preview_items)
+        )
+
+        footer = ''
+        if remaining > 0:
+            footer = format_html('<div style="color:#6b7280; font-size:12px; margin-top:4px;">+ {} more</div>', remaining)
+
+        return format_html(
+            '<div style="max-width:420px;"><ul style="margin:0; padding-left:18px;">{}</ul>{}</div>',
+            list_html,
+            footer
+        )
+    specs_preview.short_description = 'Specs'
     
 
 @admin.register(TopProduct)

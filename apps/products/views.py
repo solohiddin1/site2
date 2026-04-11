@@ -1,5 +1,7 @@
 import uuid
 import json
+import asyncio
+import inspect
 
 from django.db.models import Q
 from rest_framework import generics
@@ -27,10 +29,29 @@ from django.shortcuts import redirect
 from django.utils.text import slugify
 from django.http import JsonResponse
 from django.conf import settings
+from googletrans import Translator
 
 from apps.categories.models import SubCategory
 from apps.categories.models import Category
 from apps.company.utils import get_unique_code
+
+
+translator = Translator()
+
+
+def _translate_text_value(text, src_lang, dest_lang):
+    """Translate text safely for googletrans versions that may return awaitables."""
+    text = (text or '').strip()
+    if not text:
+        return ''
+
+    try:
+        result = translator.translate(text, src=src_lang, dest=dest_lang)
+        if inspect.isawaitable(result):
+            return asyncio.run(result).text
+        return result.text
+    except Exception:
+        return text
 
 
 class ProductListView(generics.ListAPIView):
@@ -238,15 +259,6 @@ class ProductInquiryView(generics.CreateAPIView):
         )
         print(f"Telegram response status: {response.status_code}, response text: {response.text}")
         return Response({"success": True}, status=200)
-
-
-# class CertificatesView(APIView):
-#     """List all certificates"""
-#     def get(self, request):
-#         certificates = Certificates.objects.all()
-#         serializer = CertificatesSerializer(certificates, many=True, context={'request': request})
-#         return Response(serializer.data)
-
 
 
 @api_view(['POST'])
@@ -1159,3 +1171,65 @@ def get_specs_template_view(request, template_id):
         })
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+
+@staff_member_required
+def translate_product_fields_view(request):
+    """Translate add/edit product form text fields for admin usage."""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=405)
+
+    try:
+        payload = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'message': 'Invalid JSON payload'}, status=400)
+
+    source_lang = payload.get('source_lang', 'uz')
+    target_langs = payload.get('target_langs', ['en', 'ru'])
+    fields = payload.get('fields', {})
+    specs = payload.get('specs', [])
+
+    allowed_langs = {'uz', 'en', 'ru'}
+    if source_lang not in allowed_langs:
+        return JsonResponse({'success': False, 'message': 'Unsupported source language'}, status=400)
+
+    filtered_targets = [lang for lang in target_langs if lang in allowed_langs and lang != source_lang]
+    if not filtered_targets:
+        return JsonResponse({'success': False, 'message': 'No valid target languages supplied'}, status=400)
+
+    translatable_fields = ['name', 'description', 'long_desc', 'usage']
+    result = {
+        'success': True,
+        'translations': {},
+    }
+
+    for dest_lang in filtered_targets:
+        translated_fields = {}
+        for field_name in translatable_fields:
+            translated_fields[field_name] = _translate_text_value(
+                fields.get(field_name, ''),
+                source_lang,
+                dest_lang
+            )
+
+        translated_specs = []
+        if isinstance(specs, list):
+            for item in specs:
+                if not isinstance(item, dict):
+                    continue
+                key_text = (item.get('key') or '').strip()
+                value_text = (item.get('value') or '').strip()
+                if not key_text and not value_text:
+                    continue
+
+                translated_specs.append({
+                    'key': _translate_text_value(key_text, source_lang, dest_lang),
+                    'value': _translate_text_value(value_text, source_lang, dest_lang),
+                })
+
+        result['translations'][dest_lang] = {
+            'fields': translated_fields,
+            'specs': translated_specs,
+        }
+
+    return JsonResponse(result)

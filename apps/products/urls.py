@@ -4,7 +4,7 @@ from .views import (
     ProductImageView, ProductInquiryView, TopProductsView, NewArrivalsView,
     list_products_view, add_product_view, edit_product_view, duplicate_product_view, delete_product_image_view, delete_package_image_view, delete_usage_media_view, delete_usage_media_image_view,
     list_specs_templates_view, add_specs_template_view, edit_specs_template_view, delete_specs_template_view,
-    get_specs_template_view
+    get_specs_template_view, translate_product_fields_view
 )
 
 app_name = 'products'
@@ -32,6 +32,7 @@ urlpatterns = [
     path('admin/specs-templates/edit/<int:template_id>/', edit_specs_template_view, name='edit_specs_template'),
     path('admin/specs-templates/delete/<int:template_id>/', delete_specs_template_view, name='delete_specs_template'),
     path('admin/specs-templates/get/<int:template_id>/', get_specs_template_view, name='get_specs_template'),
+    path('admin/translate-fields/', translate_product_fields_view, name='translate_product_fields'),
 
     path('', ProductListView.as_view(), name='product-list'),
     path('images/', ProductImageView.as_view(), name='product-images'),

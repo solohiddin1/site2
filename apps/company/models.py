@@ -91,9 +91,6 @@ class Banner(TranslatableModel):
         alt=models.CharField(max_length=255, blank=True, null=True),
         description=models.TextField(blank=True, null=True)
     )
-    # image = models.ImageField(upload_to='banners/', blank=True, null=True)
-    # image_desktop = models.ImageField(upload_to='banners/desktop/', blank=True, null=True)
-    # image_mobile = models.ImageField(upload_to='banners/mobile/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
     class Meta:
@@ -108,8 +105,6 @@ class BannerImages(BaseModel):
     """Additional images for banners"""
     banner = models.ForeignKey(Banner, related_name='additional_images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='banners/additional/', blank=True, null=True)
-    # image_desktop = models.ImageField(upload_to='banners/image_desktop/', blank=True, null=True)
-    # image_mobile = models.ImageField(upload_to='banners/image_mobile/', blank=True, null=True)
     alt = models.CharField(max_length=255, blank=True)
 
     class Meta:

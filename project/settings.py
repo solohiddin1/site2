@@ -213,17 +213,10 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024
 
 
 JAZZMIN_SETTINGS = {
-    # title of the window (Will default to current_admin_site.site_title if absent or None)
     "site_title": "Gidrox Admin",
-
-    # Title on the login screen (19 chars max) (defaults to current_admin_site.site_header if absent or None)
     "site_header": "Gidrox Admin",
-
-    # Title on the brand (19 chars max) (defaults to current_admin_site.site_header if absent or None)
     "site_brand": "Gidrox ",
-    # "site_logo": "jazzmin/img/nonborlogo.png",
     "order_with_respect_to": ["products", "company", "categories", "services", "users"],
-    # "site_logo": "img/admin_logo.png",        # path to logo in STATIC
     # "login_logo": "img/admin_logo_large.png", # optional large logo on login page
     "user_avatar": "image",
 

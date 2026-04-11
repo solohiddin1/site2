@@ -67,6 +67,11 @@
             background-color: #f3f4f6;
         }
 
+        .btn-outline:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .btn-danger {
             background-color: #dc2626;
             color: white;
@@ -158,7 +163,12 @@
 
                 <!-- Uzbek Tab -->
                 <div id="tab-uz" class="tab-content active p-6">
-                    <h3 class="text-xl font-semibold mb-4">O'zbek tilida ma'lumotlar</h3>
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                        <h3 class="text-xl font-semibold">O'zbek tilida ma'lumotlar</h3>
+                        <button type="button" id="translate-btn" onclick="translateFromUzbekWithWarning()" class="btn-outline text-sm">
+                            EN + RU ga tarjima qilish
+                        </button>
+                    </div>
 
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Mahsulot nomi *</label>
@@ -990,6 +1000,131 @@
                     console.error('Error:', error);
                     alert('Xatolik yuz berdi');
                 });
+        }
+
+        function languageHasContent(lang) {
+            const textInputs = [
+                document.querySelector(`input[name="name_${lang}"]`),
+                document.querySelector(`textarea[name="description_${lang}"]`),
+                document.querySelector(`textarea[name="long_desc_${lang}"]`),
+                document.querySelector(`textarea[name="usage_${lang}"]`)
+            ];
+
+            const hasText = textInputs.some(el => el && el.value.trim());
+            if (hasText) {
+                return true;
+            }
+
+            const specRows = document.querySelectorAll(`#specs-${lang} .spec-row`);
+            for (const row of specRows) {
+                const key = row.querySelector('input[data-type="key"]');
+                const value = row.querySelector('input[data-type="value"]');
+                if ((key && key.value.trim()) || (value && value.value.trim())) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        async function translateFromUzbekWithWarning() {
+            const button = document.getElementById('translate-btn');
+            const originalText = button.textContent;
+
+            const fields = {
+                name: document.querySelector('input[name="name_uz"]').value.trim(),
+                description: document.querySelector('textarea[name="description_uz"]').value.trim(),
+                long_desc: document.querySelector('textarea[name="long_desc_uz"]').value.trim(),
+                usage: document.querySelector('textarea[name="usage_uz"]').value.trim(),
+            };
+
+            if (!fields.name && !fields.description && !fields.long_desc && !fields.usage) {
+                alert('Avval O\'zbekcha matnlarni kiriting.');
+                return;
+            }
+
+            const hasEnText = languageHasContent('en');
+            const hasRuText = languageHasContent('ru');
+            if (hasEnText || hasRuText) {
+                const confirmed = confirm(
+                    'Diqqat!\n\nEN yoki RU maydonlarida mavjud matnlar bor.\nTarjima bosilsa ular O\'zbekchadan qayta yoziladi.\n\nDavom etasizmi?'
+                );
+                if (!confirmed) {
+                    return;
+                }
+            }
+
+            const uzSpecsRows = document.querySelectorAll('#specs-uz .spec-row');
+            const specs = [];
+            uzSpecsRows.forEach(row => {
+                const key = row.querySelector('input[data-type="key"]').value.trim();
+                const value = row.querySelector('input[data-type="value"]').value.trim();
+                if (key || value) {
+                    specs.push({ key, value });
+                }
+            });
+
+            button.disabled = true;
+            button.textContent = 'Tarjima qilinmoqda...';
+
+            try {
+                const response = await fetch('{% url "products:translate_product_fields" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    },
+                    body: JSON.stringify({
+                        source_lang: 'uz',
+                        target_langs: ['en', 'ru'],
+                        fields,
+                        specs,
+                    }),
+                });
+
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Tarjima xizmati ishlamadi');
+                }
+
+                ['en', 'ru'].forEach(lang => {
+                    const langData = data.translations[lang];
+                    if (!langData) {
+                        return;
+                    }
+
+                    const translatedFields = langData.fields || {};
+                    document.querySelector(`input[name="name_${lang}"]`).value = translatedFields.name || '';
+                    document.querySelector(`textarea[name="description_${lang}"]`).value = translatedFields.description || '';
+                    document.querySelector(`textarea[name="long_desc_${lang}"]`).value = translatedFields.long_desc || '';
+                    document.querySelector(`textarea[name="usage_${lang}"]`).value = translatedFields.usage || '';
+
+                    const specsContainer = document.getElementById(`specs-${lang}`);
+                    specsContainer.innerHTML = '';
+
+                    const translatedSpecs = langData.specs || [];
+                    if (translatedSpecs.length === 0) {
+                        addSpec(lang);
+                    } else {
+                        translatedSpecs.forEach(spec => {
+                            addSpec(lang);
+                            const rows = specsContainer.querySelectorAll('.spec-row');
+                            const row = rows[rows.length - 1];
+                            row.querySelector('input[data-type="key"]').value = spec.key || '';
+                            row.querySelector('input[data-type="value"]').value = spec.value || '';
+                        });
+                    }
+
+                    updateDeleteButtons(lang);
+                });
+
+                alert('✅ EN va RU maydonlari tarjima qilindi!');
+            } catch (error) {
+                alert('Tarjima vaqtida xatolik yuz berdi: ' + error.message);
+            } finally {
+                button.disabled = false;
+                button.textContent = originalText;
+            }
         }
     </script>
 </body>
