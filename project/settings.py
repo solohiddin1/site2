@@ -174,17 +174,18 @@ STATICFILES_DIRS = [
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-    'http://localhost:8080',
-    'https://7f0a7e0d2031.ngrok-free.app',
-    'http://209.38.235.118',
-    'https://209.38.235.118',
-    'http://95.46.96.189',
-    'https://gidrox.uz/uz',
-    'http://gidrox.uz/uz',
-    'http://www.gidrox.uz',
-    'https://www.gidrox.uz',
+    '*',
+    # 'http://localhost:5173',
+    # 'http://127.0.0.1:5173',
+    # 'http://localhost:8080',
+    # 'https://7f0a7e0d2031.ngrok-free.app',
+    # 'http://209.38.235.118',
+    # 'https://209.38.235.118',
+    # 'http://95.46.96.189',
+    # 'https://gidrox.uz/uz',
+    # 'http://gidrox.uz/uz',
+    # 'http://www.gidrox.uz',
+    # 'https://www.gidrox.uz',
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -192,6 +193,8 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:5173',
     'http://localhost:8080',
     'http://95.46.96.189',
+    'https://gidrox.uz/',
+    'http://gidrox.uz/',
 ]
 
 BACKEND_URL = 'http://localhost:8001'
