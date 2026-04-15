@@ -181,8 +181,10 @@ CORS_ALLOWED_ORIGINS = [
     'http://209.38.235.118',
     'https://209.38.235.118',
     'http://95.46.96.189',
-    'https://gidrox.uz',
-    'http://gidrox.uz',
+    'https://gidrox.uz/uz',
+    'http://gidrox.uz/uz',
+    'http://www.gidrox.uz',
+    'https://www.gidrox.uz',
 ]
 
 CSRF_TRUSTED_ORIGINS = [
