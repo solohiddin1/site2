@@ -171,16 +171,7 @@ STATICFILES_DIRS = [
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOWED_ORIGINS = ['http://gidrox.',
-    # 'http://localhost:5173',
-    # 'http://127.0.0.1:5173',
-    # 'http://localhost:8080',
-    # 'https://7f0a7e0d2031.ngrok-free.app',
-    'http://209.38.235.118',
-    'https://209.38.235.118',
-    # 'http://95.46.96.189',
-    'https://gidrox.uz/uz',
-    'http://gidrox.uz/uz',
+CORS_ALLOWED_ORIGINS = [
     'gidrox.uz',
     'www.gidrox.uz',
 ]
