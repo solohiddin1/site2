@@ -33,15 +33,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'drf_yasg',
     # 'drf_spectacular',
-    # New modular apps
+
     'apps.categories',
     'apps.products',
     'apps.company',
     'apps.services',
     'apps.shared',
 
-    # 'app',
-    # Third-party apps
     'rest_framework',
     'corsheaders',
     'django_json_widget',
@@ -54,7 +52,7 @@ PARLER_LANGUAGES = {
         {'code': 'ru', 'name': 'Russian'},
     ),
     'default': {
-        'fallbacks': ['uz'],  # default language if translation missing
+        'fallbacks': ['uz'],  # default language
         'hide_untranslated': False,
     }
 }
@@ -173,18 +171,19 @@ STATICFILES_DIRS = [
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
-# CORS_ALLOWED_ORIGINS = ['http://gidrox.',]
+CORS_ALLOWED_ORIGINS = ['http://gidrox.',
     # 'http://localhost:5173',
     # 'http://127.0.0.1:5173',
     # 'http://localhost:8080',
     # 'https://7f0a7e0d2031.ngrok-free.app',
-    # 'http://209.38.235.118',
-    # 'https://209.38.235.118',
+    'http://209.38.235.118',
+    'https://209.38.235.118',
     # 'http://95.46.96.189',
-    # 'https://gidrox.uz/uz',
-    # 'http://gidrox.uz/uz',
-    # 'http://www.gidrox.uz',
-    # 'https://www.gidrox.uz',
+    'https://gidrox.uz/uz',
+    'http://gidrox.uz/uz',
+    'gidrox.uz',
+    'www.gidrox.uz',
+]
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
