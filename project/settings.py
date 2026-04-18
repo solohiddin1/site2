@@ -259,4 +259,5 @@ SESSION_SAVE_EVERY_REQUEST = False  # Har request'da save qilmaslik (performance
 SESSION_COOKIE_SECURE = not DEBUG  # Production'da HTTPS orqali
 SESSION_COOKIE_HTTPONLY = True  # XSS himoyasi
 
-BASE_URL = os.getenv('BASE_URL', 'http://localhost:8080')
+# Frontend domain used in externally shared links (e.g. Telegram inquiry messages).
+BASE_URL = os.getenv('BASE_URL', 'https://gidrox.uz')

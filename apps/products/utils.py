@@ -71,7 +71,6 @@ def send_product_inquiry_telegram(name, phone_number, message, product_data=None
             f"<b>🔹 Nomi:</b> {product_data.get('name')}\n"
             f"<b>🔹 Artikul:</b> {product_data.get('sku')}\n"
             f"<b>🔗 Link:</b> <a href=\"{product_data.get('url')}\">Ko'rish</a>\n"
-            f"<b>🔗 Link:</b> {product_data.get('url')}\n"
         )
         
     payload = {

@@ -228,17 +228,13 @@ class ProductInquiryView(generics.CreateAPIView):
                 # Ensure we get name/slug in a consistent language (uz)
                 product.set_current_language('uz')
                 
-                # Try to construct a link if we have request context
-                product_url = f"/products/{product.slug}"
-                if hasattr(request, 'build_absolute_uri'):
-                    # This might be tricky if frontend is on different domain
-                    # But often the backend knows the frontend domain
-                    pass
+                base_url = str(getattr(settings, 'BASE_URL', 'https://gidrox.uz')).rstrip('/')
+                product_url = f"{base_url}/uz/products/{product.slug}"
                 
                 product_data = {
                     'name': product.name,
                     'sku': product.sku,
-                    'url': f"{settings.BASE_URL}/uz{product_url}" # Placeholder domain
+                    'url': product_url,
                 }
             except Product.DoesNotExist:
                 pass
